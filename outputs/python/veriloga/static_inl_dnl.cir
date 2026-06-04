@@ -1,0 +1,33 @@
+* Static INL/DNL testbench for configurable ADC (ngspice reference)
+* Default parameters match scripts/run_analysis.py. Regenerated netlists are
+* written to <output-dir>/veriloga/ when using --ngspice.
+
+.param BITS=10
+.param VREFP=1.0
+.param VREFN=0.0
+.param MAXCODE=1023
+.param LSB=(VREFP-VREFN)/MAXCODE
+.param GAIN=1.01
+.param OFFSET_V=0.005
+.param SIGMA_THERMAL=2.5e-4
+.param NONLINEARITY_A2=0.0
+.param NONLINEARITY_A3=-0.002
+.param VCM=0.5
+.param VFS=1.0
+.param FS=1e6
+.param SAMPLES_PER_CODE=4
+.param NUM_SAMPLES=4096
+.param DT=1/FS
+.param TSTOP=NUM_SAMPLES*DT
+.param RAMP_START=VREFN+0.5*LSB
+.param RAMP_END=VREFP-0.5*LSB
+
+Vin vin 0 PWL(0 {RAMP_START} {TSTOP} {RAMP_END})
+.include adc_behavioral.inc
+
+.control
+tran {DT} {TSTOP}
+set wr_singlescale
+wrdata static.wrdata v(vin) v(clk_int) v(v_code)
+.endc
+.end

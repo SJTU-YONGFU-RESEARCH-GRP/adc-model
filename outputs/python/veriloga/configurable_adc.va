@@ -1,0 +1,161 @@
+// Configurable ADC with gain, offset, noise, and nonlinearity.
+//
+// Analog path:
+//   v = GAIN * (vin + jitter) + OFFSET_V
+//   v += A2 * ((v - vcm)/Vfs)^2 * Vfs + A3 * ((v - vcm)/Vfs)^3 * Vfs
+//   v += sigma_thermal * N(0,1) + dnl_offset[k] * LSB
+//
+// Quantization:
+//   code = round((v - VREFN) / (VREFP - VREFN) * (2^BITS - 1))
+
+`include "constants.vams"
+`include "disciplines.vams"
+
+(* compact_module *)
+(* instance_parameter_list = {BITS, VREFP, VREFN, GAIN, OFFSET_V, SIGMA_THERMAL, JITTER_RMS, NONLINEARITY_A2, NONLINEARITY_A3, DNL_SIGMA_LSB, NOISE_SEED} *)
+module configurable_adc(vin, clk, v_code, vdd, vss);
+
+    input vin, clk, vdd, vss;
+    electrical vin, clk, vdd, vss;
+    output v_code;
+    electrical v_code;
+
+    parameter integer BITS = 10 from [4:16];
+    parameter real VREFP = 1.0;
+    parameter real VREFN = 0.0;
+
+    parameter real GAIN = 1.0;
+    parameter real OFFSET_V = 0.0;
+
+    // Noise / nonlinearity (all zero => ideal quantizer-limited ADC).
+    parameter real SIGMA_THERMAL = 0.0;      // Input-referred RMS noise (V)
+    parameter real JITTER_RMS = 0.0;         // Aperture jitter RMS (s)
+    parameter real NONLINEARITY_A2 = 0.0;    // 2nd-order coeff vs full-scale
+    parameter real NONLINEARITY_A3 = 0.0;    // 3rd-order coeff vs full-scale
+    parameter real DNL_SIGMA_LSB = 0.0;      // Per-code threshold spread (LSB)
+    parameter integer NOISE_SEED = 1;
+
+    parameter real TD = 0;
+    parameter real TR = 1p;
+    parameter real TF = 1p;
+
+    integer MAX_LUT = 4096;
+    real dnl_offset[0:4095];
+    real vin_sample;
+    real vin_prev;
+    real dt_sample;
+    real t_prev;
+    real v_jitter;
+    real v_eff;
+    real vcm;
+    real vfs;
+    real x_norm;
+    real n_thermal;
+    real code_real;
+    integer code_int;
+    integer code_idx;
+    integer max_code;
+    real fs_range;
+    real lsb;
+    integer i;
+    integer ki;
+    integer rand_seed;
+    integer first_sample;
+    real sum_u;
+
+    analog begin
+        @(initial_step) begin
+            max_code = (1 << BITS) - 1;
+            fs_range = VREFP - VREFN;
+            lsb = fs_range / max_code;
+            vcm = 0.5 * (VREFP + VREFN);
+            vfs = fs_range;
+            first_sample = 1;
+            vin_prev = vcm;
+            t_prev = 0.0;
+
+            for (i = 0; i < MAX_LUT; i = i + 1)
+                dnl_offset[i] = 0.0;
+
+            for (i = 0; i <= max_code && i < MAX_LUT - 1; i = i + 1) begin
+                sum_u = 0.0;
+                for (ki = 0; ki < 12; ki = ki + 1) begin
+                    rand_seed = NOISE_SEED + i + ki;
+                    sum_u = sum_u
+                            + (($random(rand_seed) & 65535) / 65535.0);
+                end
+                dnl_offset[i] = DNL_SIGMA_LSB * (sum_u - 6.0);
+            end
+        end
+
+        @(cross(V(clk) - (V(vdd) + V(vss)) / 2.0, +1)) begin
+            vin_sample = V(vin);
+
+            if (first_sample != 0) begin
+                dt_sample = 1.0;
+                first_sample = 0;
+            end else begin
+                dt_sample = $abstime - t_prev;
+                if (dt_sample <= 0.0)
+                    dt_sample = 1.0;
+            end
+            t_prev = $abstime;
+
+            // Aperture jitter: delta_v ~= jitter * dV/dt.
+            if (JITTER_RMS > 0.0) begin
+                sum_u = 0.0;
+                for (ki = 0; ki < 12; ki = ki + 1) begin
+                    rand_seed = NOISE_SEED + ki;
+                    sum_u = sum_u
+                            + (($random(rand_seed) & 65535) / 65535.0);
+                end
+                v_jitter = JITTER_RMS * (vin_sample - vin_prev) / dt_sample
+                           * (sum_u - 6.0);
+            end else
+                v_jitter = 0.0;
+
+            vin_prev = vin_sample;
+            v_eff = GAIN * (vin_sample + v_jitter) + OFFSET_V;
+
+            if (NONLINEARITY_A2 != 0.0 || NONLINEARITY_A3 != 0.0) begin
+                x_norm = (v_eff - vcm) / vfs;
+                v_eff = v_eff + vfs * (NONLINEARITY_A2 * x_norm * x_norm
+                                       + NONLINEARITY_A3 * x_norm * x_norm * x_norm);
+            end
+
+            if (SIGMA_THERMAL > 0.0) begin
+                sum_u = 0.0;
+                for (ki = 0; ki < 12; ki = ki + 1) begin
+                    rand_seed = NOISE_SEED + 1000 + ki;
+                    sum_u = sum_u
+                            + (($random(rand_seed) & 65535) / 65535.0);
+                end
+                n_thermal = SIGMA_THERMAL * (sum_u - 6.0);
+            end else
+                n_thermal = 0.0;
+            v_eff = v_eff + n_thermal;
+
+            if (DNL_SIGMA_LSB > 0.0) begin
+                code_idx = $rtoi(floor((v_eff - VREFN) / lsb));
+                if (code_idx < 0) code_idx = 0;
+                if (code_idx > max_code - 1) code_idx = max_code - 1;
+                if (code_idx < MAX_LUT)
+                    v_eff = v_eff + dnl_offset[code_idx] * lsb;
+            end
+
+            if (v_eff <= VREFN) begin
+                code_int = 0;
+            end else if (v_eff >= VREFP) begin
+                code_int = max_code;
+            end else begin
+                code_real = (v_eff - VREFN) / fs_range * max_code;
+                code_int = $rtoi(floor(code_real + 0.5));
+                if (code_int < 0) code_int = 0;
+                if (code_int > max_code) code_int = max_code;
+            end
+        end
+
+        V(v_code) <+ transition(code_int * lsb, TD, TR, TF);
+    end
+
+endmodule

@@ -1,0 +1,31 @@
+* Dynamic spectrum testbench for configurable ADC (ngspice reference)
+* Provide a coherent input tone with ``SIN(VCM AMPL FIN 0 0)`` or use --ngspice via Python.
+
+.param BITS=10
+.param VREFP=1.0
+.param VREFN=0.0
+.param MAXCODE=1023
+.param LSB=(VREFP-VREFN)/MAXCODE
+.param GAIN=1.01
+.param OFFSET_V=0.005
+.param SIGMA_THERMAL=2.5e-4
+.param NONLINEARITY_A2=0.0
+.param NONLINEARITY_A3=-0.002
+.param VCM=0.5
+.param VFS=1.0
+.param FS=1e6
+.param FIN=121582.03125
+.param VCM_SINE=0.5
+.param NUM_SAMPLES=8192
+.param DT=1/FS
+.param TSTOP=(NUM_SAMPLES-1)*DT
+
+Vin vin 0 SIN({VCM_SINE} {AMPL} {FIN} 0 0)
+.include adc_behavioral.inc
+
+.control
+tran {DT} {TSTOP}
+set wr_singlescale
+wrdata dynamic.wrdata v(vin) v(clk_int) v(v_code)
+.endc
+.end

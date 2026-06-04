@@ -1,0 +1,51 @@
+// Static INL/DNL testbench for configurable_adc (Cadence Spectre).
+//
+// Run from repo root:
+//   spectre testbench/spectre/static_inl_dnl.scs +log status
+//
+// Waveforms are exported via Python (nutascii raw -> CSV):
+//   python scripts/run_static.py --simulator spectre --output-dir outputs/spectre
+//
+// Then analyze:
+//   python scripts/run_static.py --input outputs/spectre/static_waveform.csv
+
+simulator lang=spectre
+
+ahdl_include "/home/yongfu/proj/adc-model/veriloga/configurable_adc.va"
+parameters bits=10
+parameters vrefp=1
+parameters vrefn=0.0
+parameters gain=1.01
+parameters offset_v=0.005
+parameters fs=1000000
+parameters samples_per_code=16
+
+// Noise / nonlinearity (set to zero for ideal quantizer-limited behavior).
+parameters sigma_thermal=0.00025
+parameters jitter_rms=5e-13
+parameters nonlinearity_a2=0.0
+parameters nonlinearity_a3=-0.002
+parameters dnl_sigma_lsb=0.08
+parameters noise_seed=1
+
+// Slow ramp spanning all codes with margin.
+parameters num_codes=(2**bits)-1
+parameters num_samples=16384
+parameters t_stop=num_samples/fs
+parameters lsb=(vrefp-vrefn)/num_codes
+parameters ramp_start=vrefn+0.5*lsb
+parameters ramp_end=vrefp-0.5*lsb
+
+VDD (vdd 0) vsource dc=1.0
+VSS (vss 0) vsource dc=0.0
+
+VCLK (clk 0) vsource type=pulse \
+    val0=0 val1=1 period=1/fs rise=100p fall=100p width=0.5/fs
+
+VRAMP (vin 0) vsource type=pwl \
+    wave=[0 ramp_start t_stop ramp_end]
+
+ADC (vin clk v_code vdd vss) configurable_adc BITS=bits VREFP=vrefp VREFN=vrefn GAIN=gain OFFSET_V=offset_v SIGMA_THERMAL=sigma_thermal JITTER_RMS=jitter_rms NONLINEARITY_A2=nonlinearity_a2 NONLINEARITY_A3=nonlinearity_a3 DNL_SIGMA_LSB=dnl_sigma_lsb NOISE_SEED=noise_seed
+
+save vin clk v_code
+tran tran stop=t_stop maxstep=0.25/fs

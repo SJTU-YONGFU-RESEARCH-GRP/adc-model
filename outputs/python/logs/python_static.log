@@ -1,0 +1,35 @@
+# Python simulation log: static_inl_dnl
+Generated: 2026-06-04 07:36:56 UTC
+Python: 3.12.12
+Engine: Python behavioral model (matches veriloga/configurable_adc.va)
+
+Verilog-A reference: configurable_adc.va
+
+[ADC Config]
+bits=10
+vrefp=1.0
+vrefn=0.0
+gain=1.01
+offset_v=0.005
+fs_hz=1000000.0
+
+[Noise Config]
+sigma_thermal_v=0.00025
+jitter_rms_s=5e-13
+nonlinearity_a2=0.0
+nonlinearity_a3=-0.002
+dnl_sigma_lsb=0.08
+noise_seed=1
+enabled=True
+
+[Testbench]
+samples_per_code=4
+inl_dnl_method=histogram
+engine=Python behavioral model
+
+[Results]
+num_samples=16384
+max_dnl_lsb=1.0
+max_inl_lsb=4.440907930486543
+waveform_csv=static_waveform.csv
+plot_svg=inl_dnl.svg

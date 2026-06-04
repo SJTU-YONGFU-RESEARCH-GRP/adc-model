@@ -1,0 +1,48 @@
+// Dynamic spectrum testbench for configurable_adc (Cadence Spectre).
+//
+// Run from repo root:
+//   spectre testbench/spectre/dynamic_spectrum.scs +log status
+//
+// Waveforms are exported via Python (nutascii raw -> CSV):
+//   python scripts/run_dynamic.py --simulator spectre --output-dir outputs/spectre
+//
+// Then analyze:
+//   python scripts/run_dynamic.py --input outputs/spectre/dynamic_waveform.csv
+
+simulator lang=spectre
+
+include "./testbench/spectre/adc_include.scs"
+
+parameters bits=10
+parameters vrefp=1.0
+parameters vrefn=0.0
+parameters gain=1.01
+parameters offset_v=5m
+parameters fs=1Meg
+parameters num_samples=8192
+parameters coherent_bin=997
+parameters fin=coherent_bin*fs/num_samples
+parameters amplitude=0.95*(vrefp-vrefn)/2
+parameters vcm=0.5*(vrefp+vrefn)
+parameters t_stop=num_samples/fs
+
+parameters sigma_thermal=250u
+parameters jitter_rms=500f
+parameters nonlinearity_a2=0.0
+parameters nonlinearity_a3=-0.002
+parameters dnl_sigma_lsb=0.08
+parameters noise_seed=1
+
+VDD (vdd 0) vsource dc=1.0
+VSS (vss 0) vsource dc=0.0
+
+VCLK (clk 0) vsource type=pulse \
+    val0=0 val1=1 period=1/fs rise=100p fall=100p width=0.5/fs
+
+VSIN (vin 0) vsource type=sine \
+    dc=vcm ampl=amplitude freq=fin
+
+ADC (vin clk v_code vdd vss) configurable_adc BITS=bits VREFP=vrefp VREFN=vrefn GAIN=gain OFFSET_V=offset_v SIGMA_THERMAL=sigma_thermal JITTER_RMS=jitter_rms NONLINEARITY_A2=nonlinearity_a2 NONLINEARITY_A3=nonlinearity_a3 DNL_SIGMA_LSB=dnl_sigma_lsb NOISE_SEED=noise_seed
+
+save vin clk v_code
+tran tran stop=t_stop maxstep=0.25/fs

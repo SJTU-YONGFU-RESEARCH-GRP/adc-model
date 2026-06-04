@@ -1,0 +1,38 @@
+# Python simulation log: dynamic_spectrum
+Generated: 2026-06-04 07:36:58 UTC
+Python: 3.12.12
+Engine: Python behavioral model (matches veriloga/configurable_adc.va)
+
+Verilog-A reference: configurable_adc.va
+
+[ADC Config]
+bits=10
+vrefp=1.0
+vrefn=0.0
+gain=1.01
+offset_v=0.005
+fs_hz=1000000.0
+
+[Noise Config]
+sigma_thermal_v=0.00025
+jitter_rms_s=5e-13
+nonlinearity_a2=0.0
+nonlinearity_a3=-0.002
+dnl_sigma_lsb=0.08
+noise_seed=1
+enabled=True
+
+[Testbench]
+num_samples=8192
+coherent_bin=997
+fin_hz=121704.1015625
+engine=Python behavioral model
+
+[Results]
+sndr_db=58.92158479199891
+sfdr_db=85.66000106584069
+thd_db=79.8524461636529
+enob_bits=9.495279865780551
+harmonics=H1, H2, H3, H4, H5*, H6*
+waveform_csv=dynamic_waveform.csv
+plot_svg=spectrum.svg

@@ -1,0 +1,4 @@
+// Shared Verilog-A include for Spectre testbenches.
+// Path is relative to the repository root when Spectre is launched from there.
+
+ahdl_include "./veriloga/configurable_adc.va"
