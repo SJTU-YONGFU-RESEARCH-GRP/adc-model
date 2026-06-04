@@ -110,10 +110,28 @@ require_command() {
     exit 1
 }
 
+# Drop flags that only apply to static ramp capture (e.g. run_dynamic has no --samples-per-code).
+dynamic_extra_args() {
+    DYNAMIC_EXTRA_ARGS=()
+    local skip_next=0
+    for arg in "${EXTRA_ARGS[@]}"; do
+        if [[ "${skip_next}" -eq 1 ]]; then
+            skip_next=0
+            continue
+        fi
+        if [[ "${arg}" == "--samples-per-code" ]]; then
+            skip_next=1
+            continue
+        fi
+        DYNAMIC_EXTRA_ARGS+=("${arg}")
+    done
+}
+
 run_engine() {
     local engine="$1"
     local out_dir="${OUTPUT_ROOT}/${engine}"
     mkdir -p "${out_dir}"
+    dynamic_extra_args
 
     echo ""
     echo "========== ${engine}: static INL/DNL =========="
@@ -127,7 +145,7 @@ run_engine() {
     "${PYTHON}" scripts/run_dynamic.py \
         --simulator "${engine}" \
         --output-dir "${out_dir}" \
-        "${EXTRA_ARGS[@]}"
+        "${DYNAMIC_EXTRA_ARGS[@]}"
 }
 
 echo "Output root: ${OUTPUT_ROOT}"

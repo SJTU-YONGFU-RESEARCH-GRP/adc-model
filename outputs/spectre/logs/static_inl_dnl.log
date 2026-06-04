@@ -5,78 +5,62 @@ Copyright (C) 1989-2024 Cadence Design Systems, Inc. All rights reserved worldwi
 
 Includes RSA BSAFE(R) Cryptographic or Security Protocol Software from RSA Security, Inc.
 
-User: yongfu   Host: river   HostID: 7F0100   PID: 4071443
-Memory  available: 358.9321 GB  physical: 405.0724 GB
+User: yongfu   Host: river   HostID: 7F0100   PID: 279349
+Memory  available: 336.5462 GB  physical: 405.0724 GB
 Linux   : Red Hat Enterprise Linux release 9.7 (Plow)
 CPU Type: Intel(R) Xeon(R) CPU E5-2678 v3 @ 2.50GHz
-All processors running at 2899.7 MHz
-        Socket: Processors (Hyperthreaded Processor)
-        0:       0 ( 24 ),  1 ( 25 ),  2 ( 26 ),  3 ( 27 ),  4 ( 28 )
-                 5 ( 29 ),  6 ( 30 ),  7 ( 31 ),  8 ( 32 ),  9 ( 33 )
-                10 ( 34 ), 11 ( 35 )
-        1:      12 ( 36 ), 13 ( 37 ), 14 ( 38 ), 15 ( 39 ), 16 ( 40 )
-                17 ( 41 ), 18 ( 42 ), 19 ( 43 ), 20 ( 44 ), 21 ( 45 )
-                22 ( 46 ), 23 ( 47 )
+        Socket: Processors [Frequency] (Hyperthreaded Processor)
+        0:       0 [2983.9] ( 24 ),  1 [3300.0] ( 25 ),  2 [3300.0] ( 26 )
+                 3 [2900.1] ( 27 ),  4 [3300.0] ( 28 ),  5 [2989.5] ( 29 )
+                 6 [2954.8] ( 30 ),  7 [3300.0] ( 31 ),  8 [2929.7] ( 32 )
+                 9 [2900.4] ( 33 ), 10 [3300.0] ( 34 ), 11 [2910.2] ( 35 )
+        1:      12 [3300.0] ( 36 ), 13 [3300.0] ( 37 ), 14 [3300.0] ( 38 )
+                15 [3300.0] ( 39 ), 16 [3027.7] ( 40 ), 17 [3300.0] ( 41 )
+                18 [3300.0] ( 42 ), 19 [2911.8] ( 43 ), 20 [2957.7] ( 44 )
+                21 [3300.0] ( 45 ), 22 [3300.0] ( 46 ), 23 [3300.0] ( 47 )
         
-System load averages (1min, 5min, 15min) : 106.1 %, 91.5 %, 78.1 %
+System load averages (1min, 5min, 15min) : 14.9 %, 39.1 %, 73.4 %
 Hyperthreading is enabled
 
 
-Simulating `/home/yongfu/proj/adc-model/outputs/spectre/logs/netlists/static_inl_dnl.scs' on river at 3:37:49 PM, Thur Jun 4, 2026 (process id: 4071443).
-Current working directory: /home/yongfu/proj/adc-model/outputs/spectre/logs
+Simulating `/home/yongfu/proj/adc-calibration/model/adc-model/outputs/spectre/logs/netlists/static_inl_dnl.scs' on river at 7:17:03 PM, Thur Jun 4, 2026 (process id: 279349).
+Current working directory: /home/yongfu/proj/adc-calibration/model/adc-model/outputs/spectre/logs
 Command line:
     /eda/cadence/SPECTRE241/tools/bin/spectre -64  \
-        /home/yongfu/proj/adc-model/outputs/spectre/logs/netlists/static_inl_dnl.scs  \
+        /home/yongfu/proj/adc-calibration/model/adc-model/outputs/spectre/logs/netlists/static_inl_dnl.scs  \
         -format nutascii -raw  \
-        /home/yongfu/proj/adc-model/outputs/spectre/logs/static_inl_dnl.nutascii
+        /home/yongfu/proj/adc-calibration/model/adc-model/outputs/spectre/logs/static_inl_dnl.nutascii
 
 Licensing Information:
-[15:37:49.080361] Configured Lic search path (24.01-s002): /eda/cadence/license.dat
+[19:17:03.080297] Configured Lic search path (24.01-s002): /eda/cadence/license.dat
 
 Licensing Information:
-[15:37:50.164610] Periodic Lic check successful
+[19:17:03.233426] Periodic Lic check successful
 
 Loading /eda/cadence/SPECTRE241/tools.lnx86/cmi/lib/64bit/5.0/libinfineon_sh.so ...
 Loading /eda/cadence/SPECTRE241/tools.lnx86/cmi/lib/64bit/5.0/libphilips_I_sh.so ...
 Loading /eda/cadence/SPECTRE241/tools.lnx86/cmi/lib/64bit/5.0/libphilips_sh.so ...
 Loading /eda/cadence/SPECTRE241/tools.lnx86/cmi/lib/64bit/5.0/libsparam_sh.so ...
 Loading /eda/cadence/SPECTRE241/tools.lnx86/cmi/lib/64bit/5.0/libstmodels_sh.so ...
-Reading file:  /home/yongfu/proj/adc-model/outputs/spectre/logs/netlists/static_inl_dnl.scs
+Reading file:  /home/yongfu/proj/adc-calibration/model/adc-model/outputs/spectre/logs/netlists/static_inl_dnl.scs
 Reading file:  /eda/cadence/SPECTRE241/tools.lnx86/spectre/etc/configs/spectre.cfg
-Reading file:  /home/yongfu/proj/adc-model/veriloga/configurable_adc.va
+Reading file:  /home/yongfu/proj/adc-calibration/model/adc-model/veriloga/configurable_adc.va
 Reading file:  /eda/cadence/SPECTRE241/tools.lnx86/spectre/etc/ahdl/constants.vams
 Reading file:  /eda/cadence/SPECTRE241/tools.lnx86/spectre/etc/ahdl/disciplines.vams
-
-Notice from spectre during AHDL read-in.
-    "/home/yongfu/proj/adc-model/veriloga/configurable_adc.va", line 16:  Module configurable_adc is a compact model. As a result, it has been optimized automatically for better performance. For more information on compact models, refer to the Cadence Verilog-A Language Reference manual.
-
-Time for NDB Parsing: CPU = 294.527 ms, elapsed = 645.544 ms.
-Time accumulated: CPU = 418.474 ms, elapsed = 645.547 ms.
+Time for NDB Parsing: CPU = 175.934 ms, elapsed = 381.85 ms.
+Time accumulated: CPU = 269.159 ms, elapsed = 381.852 ms.
 Peak resident memory used = 196 Mbytes.
 
-Created directory ./static_inl_dnl.ahdlSimDB/ (775)
-Created directory ./static_inl_dnl.ahdlSimDB//8018326cd2bfed203e19955624c094e5.configurable_adc.ahdlcmi/ (775)
-Created directory ./static_inl_dnl.ahdlSimDB//8018326cd2bfed203e19955624c094e5.configurable_adc.ahdlcmi/Linux-64/ (775)
-
-Warning from spectre during AHDL read-in.
-    WARNING (VACOMP-2409): "/home/yongfu/proj/adc-model/veriloga/configurable_adc.va", line 43: A variable `dnl_offset' in compact module `configurable_adc' has not been assigned a value, and therefore, it has been processed as a hidden state variable. This may slow down the simulation. Assign a value to the variable before using it, or set the 'CDS_AHDL_IGNORE_HIDDEN_STATE' environment variable to YES to process all hidden state variables as non-hidden state variables for all Verilog-A modules. Alternatively, specify the (* ignore_hidden_state="all" *) attribute to process the hidden state variables as non-hidden state variables in the module.
-    WARNING (VACOMP-2409): "/home/yongfu/proj/adc-model/veriloga/configurable_adc.va", line 45: A variable `vin_prev' in compact module `configurable_adc' has not been assigned a value, and therefore, it has been processed as a hidden state variable. This may slow down the simulation. Assign a value to the variable before using it, or set the 'CDS_AHDL_IGNORE_HIDDEN_STATE' environment variable to YES to process all hidden state variables as non-hidden state variables for all Verilog-A modules. Alternatively, specify the (* ignore_hidden_state="all" *) attribute to process the hidden state variables as non-hidden state variables in the module.
-    WARNING (VACOMP-2409): "/home/yongfu/proj/adc-model/veriloga/configurable_adc.va", line 47: A variable `t_prev' in compact module `configurable_adc' has not been assigned a value, and therefore, it has been processed as a hidden state variable. This may slow down the simulation. Assign a value to the variable before using it, or set the 'CDS_AHDL_IGNORE_HIDDEN_STATE' environment variable to YES to process all hidden state variables as non-hidden state variables for all Verilog-A modules. Alternatively, specify the (* ignore_hidden_state="all" *) attribute to process the hidden state variables as non-hidden state variables in the module.
-    WARNING (VACOMP-2409): "/home/yongfu/proj/adc-model/veriloga/configurable_adc.va", line 55: A variable `code_int' in compact module `configurable_adc' has not been assigned a value, and therefore, it has been processed as a hidden state variable. This may slow down the simulation. Assign a value to the variable before using it, or set the 'CDS_AHDL_IGNORE_HIDDEN_STATE' environment variable to YES to process all hidden state variables as non-hidden state variables for all Verilog-A modules. Alternatively, specify the (* ignore_hidden_state="all" *) attribute to process the hidden state variables as non-hidden state variables in the module.
-    WARNING (VACOMP-2409): "/home/yongfu/proj/adc-model/veriloga/configurable_adc.va", line 62: A variable `rand_seed' in compact module `configurable_adc' has not been assigned a value, and therefore, it has been processed as a hidden state variable. This may slow down the simulation. Assign a value to the variable before using it, or set the 'CDS_AHDL_IGNORE_HIDDEN_STATE' environment variable to YES to process all hidden state variables as non-hidden state variables for all Verilog-A modules. Alternatively, specify the (* ignore_hidden_state="all" *) attribute to process the hidden state variables as non-hidden state variables in the module.
-        Further occurrences of this warning will be suppressed.
-
-Compiling ahdlcmi module library for configurable_adc.
-Finished compilation in 5.68 s (elapsed) for configurable_adc.
+Existing shared object for module configurable_adc is up to date.
 Installed compiled interface for configurable_adc.
-Time for Elaboration: CPU = 5.53976 s, elapsed = 5.83377 s.
-Time accumulated: CPU = 5.95842 s, elapsed = 6.4795 s.
-Peak resident memory used = 214 Mbytes.
+Time for Elaboration: CPU = 37.911 ms, elapsed = 19.0251 ms.
+Time accumulated: CPU = 307.169 ms, elapsed = 400.976 ms.
+Peak resident memory used = 205 Mbytes.
 
 
-Time for EDB Visiting: CPU = 2.03 ms, elapsed = 1.03688 ms.
-Time accumulated: CPU = 5.96061 s, elapsed = 6.4807 s.
-Peak resident memory used = 215 Mbytes.
+Time for EDB Visiting: CPU = 1.566 ms, elapsed = 574.112 us.
+Time accumulated: CPU = 308.851 ms, elapsed = 401.664 ms.
+Peak resident memory used = 206 Mbytes.
 
 
 Notice from spectre during topology check.
@@ -104,13 +88,9 @@ Output statements:
            .measure 0     
                save 1     
 
-
-Notice from spectre.
-    1 warning suppressed.
-
-Time for parsing: CPU = 17.019 ms, elapsed = 15.0549 ms.
-Time accumulated: CPU = 5.97774 s, elapsed = 6.49586 s.
-Peak resident memory used = 218 Mbytes.
+Time for parsing: CPU = 6.325 ms, elapsed = 3.36003 ms.
+Time accumulated: CPU = 315.266 ms, elapsed = 405.114 ms.
+Peak resident memory used = 209 Mbytes.
 
 ~~~~~~~~~~~~~~~~~~~~~~
 Pre-Simulation Summary
@@ -120,7 +100,7 @@ Pre-Simulation Summary
 ****************************************************
 Transient Analysis `tran': time = (0 s -> 16.384 ms)
 ****************************************************
-DC simulation time: CPU = 1.81 ms, elapsed = 926.971 us.
+DC simulation time: CPU = 1.604 ms, elapsed = 613.213 us.
 Important parameter values:
     start = 0 s
     outputstart = 0 s
@@ -166,35 +146,35 @@ Post-Transient Simulation Summary
 
 
 During simulation, the CPU load for active processors is :
-         0 (100.0 %)     1 (100.0 %)     2 (100.0 %)     3 (100.0 %)
-         4 (100.0 %)     5 (100.0 %)     6 (100.0 %)     7 (100.0 %)
-         8 (100.0 %)     9 (100.0 %)    10 (100.0 %)    11 (100.0 %)
-        12 (100.0 %)    13 (100.0 %)    14 (100.0 %)    15 (100.0 %)
-        16 (100.0 %)    17 (100.0 %)    18 (100.0 %)    19 (100.0 %)
-        20 (100.0 %)    21 (100.0 %)    22 (100.0 %)    23 (100.0 %)
-        24 (100.0 %)    25 (100.0 %)    26 (100.0 %)    27 (100.0 %)
-        28 (100.0 %)    29 (100.0 %)    30 (100.0 %)    31 (100.0 %)
-        32 (100.0 %)    33 (100.0 %)    34 (100.0 %)    35 (100.0 %)
-        36 (100.0 %)    37 (100.0 %)    38 (100.0 %)    39 (100.0 %)
-        40 (100.0 %)    41 (100.0 %)    42 (100.0 %)    43 (100.0 %)
-        44 (100.0 %)    45 (100.0 %)    46 (100.0 %)    47 (100.0 %)
-        Total: 4799.9%
-Initial condition solution time: CPU = 1.871 ms, elapsed = 988.007 us.
-Intrinsic tran analysis time:    CPU = 25.9056 s, elapsed = 25.4528 s.
-Total time required for tran analysis `tran': CPU = 25.9091 s, elapsed = 25.4544 s, util. = 102%.
-Time accumulated: CPU = 31.9076 s, elapsed = 31.9831 s.
-Peak resident memory used = 223 Mbytes.
+         0 (11.3 %)      1 (13.3 %)      2 (1.4 %)       3 (1.6 %)
+         4 (1.5 %)       5 (1.5 %)       6 (1.5 %)       7 (96.0 %)
+         8 (2.5 %)       9 (23.6 %)     10 (3.5 %)      11 (100.0 %)
+        12 (1.1 %)      13 (2.9 %)      14 (3.7 %)      15 (1.9 %)
+        16 (59.1 %)     17 (3.6 %)      18 (2.4 %)      19 (3.4 %)
+        20 (2.8 %)      21 (10.7 %)     22 (2.3 %)      23 (3.5 %)
+        24 (78.6 %)     25 (6.4 %)      26 (1.4 %)      27 (1.4 %)
+        28 (2.4 %)      29 (1.4 %)      30 (1.5 %)      31 (1.6 %)
+        32 (2.1 %)      33 (1.3 %)      34 (2.0 %)      35 (1.2 %)
+        36 (100.0 %)    37 (3.0 %)      38 (5.3 %)      39 (3.0 %)
+        40 (32.4 %)     41 (5.2 %)      42 (2.5 %)      43 (2.1 %)
+        44 (1.9 %)      45 (9.7 %)      46 (1.8 %)      47 (1.7 %)
+        Total: 625.1%
+Initial condition solution time: CPU = 1.657 ms, elapsed = 666.142 us.
+Intrinsic tran analysis time:    CPU = 23.5475 s, elapsed = 19.1866 s.
+Total time required for tran analysis `tran': CPU = 23.5497 s, elapsed = 19.1878 s, util. = 123%.
+Time accumulated: CPU = 23.8765 s, elapsed = 19.6045 s.
+Peak resident memory used = 218 Mbytes.
 
 Licensing Information:
 Lic Summary:
-[15:38:21.001232] cdslmd servers: /eda/cadence/license.dat
-[15:38:21.016544] Feature usage summary:
-[15:38:21.249407]   Virtuoso_Spectre  
+[19:17:23.001256] cdslmd servers: /eda/cadence/license.dat
+[19:17:23.016568] Feature usage summary:
+[19:17:23.249431]   Virtuoso_Spectre  
 
 
-Aggregate audit (3:38:21 PM, Thur Jun 4, 2026):
-Time used: CPU = 31.9 s, elapsed = 32 s, util. = 99.7%.
-Time spent in licensing: elapsed = 329 ms.
-Peak memory used = 223 Mbytes.
-Simulation started at: 3:37:49 PM, Thur Jun 4, 2026, ended at: 3:38:21 PM, Thur Jun 4, 2026, with elapsed time (wall clock): 32 s.
-spectre completes with 0 errors, 5 warnings, and 4 notices.
+Aggregate audit (7:17:23 PM, Thur Jun 4, 2026):
+Time used: CPU = 23.9 s, elapsed = 23.9 s, util. = 100%.
+Time spent in licensing: elapsed = 469 ms.
+Peak memory used = 218 Mbytes.
+Simulation started at: 7:17:03 PM, Thur Jun 4, 2026, ended at: 7:17:23 PM, Thur Jun 4, 2026, with elapsed time (wall clock): 23.9 s.
+spectre completes with 0 errors, 0 warnings, and 2 notices.

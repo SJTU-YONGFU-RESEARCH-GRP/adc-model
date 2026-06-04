@@ -16421,6 +16421,6 @@ Vclk clk_int 0 PULSE(0 1 0 100p 100p {0.5/1000000.0} {1/1000000.0})
 .control
 tran 1.000000000000e-06 1.638400000000e-02
 set wr_singlescale
-wrdata /home/yongfu/proj/adc-model/outputs/ngspice/logs/ngspice_static.wrdata v(vin) v(clk_int) v(v_nl)
+wrdata /home/yongfu/proj/adc-calibration/model/adc-model/outputs/ngspice/logs/ngspice_static.wrdata v(vin) v(clk_int) v(v_nl)
 .endc
 .end
