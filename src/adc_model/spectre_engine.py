@@ -73,11 +73,21 @@ def _effective_samples_per_code(samples_per_code: int, noise: AdcNoiseConfig) ->
         return _MIN_SAMPLES_PER_CODE_WITH_NOISE
     return samples_per_code
 
+def _is_nutascii_continuation_line(line: str) -> bool:
+    """Return True when ``line`` continues the previous sample row.
+
+    Spectre prefixes continuation rows with a tab; the primary row starts with
+    the point index (often after leading spaces).
+    """
+    return line.startswith("\t")
+
+
 def read_spectre_nutascii(path: Path) -> dict[str, NDArray[np.float64]]:
     """Read a Spectre nutascii transient raw file.
 
-    Spectre writes one index line per sample (index, time, vin, clk, ...) and a
-    follow-on line for any remaining real variables (typically ``v_code``).
+    Spectre writes one index line per sample (index, time, vin, clk, ...) and
+    one or more tab-prefixed continuation lines for remaining variables (e.g.
+    multi-channel ``clk*`` / ``v_code*`` in TI testbenches).
 
     Args:
         path: Nutascii raw file produced by ``spectre -format nutascii -raw``.
@@ -106,8 +116,11 @@ def read_spectre_nutascii(path: Path) -> dict[str, NDArray[np.float64]]:
         if len(row) < 2:
             continue
         values = row[1:]
-        # Continuation line carries trailing signals (often ``v_code`` only).
-        if len(values) < len(var_names) and line_idx < len(data_lines):
+        while (
+            len(values) < len(var_names)
+            and line_idx < len(data_lines)
+            and _is_nutascii_continuation_line(data_lines[line_idx])
+        ):
             values.extend(_split_numeric_row(data_lines[line_idx]))
             line_idx += 1
         if len(values) < len(var_names):

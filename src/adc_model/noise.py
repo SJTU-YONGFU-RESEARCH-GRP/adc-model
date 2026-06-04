@@ -2,8 +2,19 @@
 
 Processing order matches ``veriloga/configurable_adc.va``:
   jitter → gain/offset → A2/A3 → thermal → DNL → quantize.
+
+Signal-chain equations (input-referred unless noted):
+  - Jitter: ``Δv = jitter_rms_s · dv/dt · N(0,1)`` (V), aperture noise in seconds.
+  - Gain/offset: ``v = gain·v + offset_v`` (V).
+  - Nonlinearity: normalized ``x = (v - Vcm)/Vfs``,
+    ``v += Vfs·(a2·x² + a3·x³)`` (dimensionless ``a2``, ``a3``).
+  - Thermal: ``v += N(0, sigma_thermal_v)`` (V).
+  - DNL: add fixed per-code threshold offset from :func:`build_dnl_profile` (V).
+
 ``apply_analog_front_end_at_edges`` applies that chain once per clock edge so
 Python/ngspice post-process matches Spectre ``@(cross(clk))`` sampling.
+
+Seeds: ``noise_seed`` drives thermal/jitter draws; DNL profile uses ``noise_seed + 17``.
 """
 
 from __future__ import annotations
@@ -15,7 +26,11 @@ from adc_model.config import AdcConfig, AdcNoiseConfig
 
 
 def build_dnl_profile(cfg: AdcConfig, noise: AdcNoiseConfig) -> NDArray[np.float64]:
-    """Build a fixed per-code DNL threshold offset profile in volts."""
+    """Build a fixed per-code DNL threshold offset profile in volts.
+
+    Draws ``N(0, dnl_sigma_lsb)`` per code (LSB), scales by ``cfg.lsb`` (V/LSB),
+    and returns one offset per quantizer level (length ``num_codes``).
+    """
     # Offset seed so DNL draws are independent of per-sample thermal draws.
     rng = np.random.default_rng(noise.noise_seed + 17)
     offsets_lsb = rng.normal(0.0, noise.dnl_sigma_lsb, cfg.num_codes)
@@ -31,7 +46,17 @@ def apply_analog_front_end(
     rng: np.random.Generator,
     dnl_profile: NDArray[np.float64] | None = None,
 ) -> NDArray[np.float64]:
-    """Apply jitter, gain/offset, nonlinearity, and thermal noise."""
+    """Apply jitter, gain/offset, nonlinearity, and thermal noise.
+
+    Args:
+        vin: Input voltage samples (V) on the simulation grid.
+        dt: Uniform time step between samples (s).
+        rng: Generator for jitter and thermal draws (seeded from ``noise_seed``).
+        dnl_profile: Optional per-code offsets (V) indexed by estimated code.
+
+    Returns:
+        Front-end voltage (V) before quantization.
+    """
     num_samples = len(vin)
     v = vin.astype(np.float64, copy=True)
 
@@ -139,8 +164,12 @@ def apply_post_front_end_noise(
 ) -> NDArray[np.int64]:
     """Apply thermal noise, DNL spread, and quantization after the analog front end.
 
-    This mirrors the final stages of ``apply_analog_front_end`` and is used to
-    finish ngspice captures at ``v_nl`` with the same seeded RNG as Python.
+    Used when ngspice stops at ``v_nl`` (nonlinearity output) and Python must
+    finish thermal + DNL + ``quantize_front_end`` with the same ``noise_seed``
+    as the behavioral model. Jitter/gain/nonlinearity are assumed already in ``v_front``.
+
+    Returns:
+        Integer ADC codes (0 .. ``max_code``).
     """
     v = v_front.astype(np.float64, copy=True)
     num_samples = len(v)
@@ -160,7 +189,12 @@ def quantize_front_end(
     v_front: NDArray[np.float64],
     cfg: AdcConfig,
 ) -> NDArray[np.int64]:
-    """Quantize analog front-end samples to integer codes."""
+    """Quantize analog front-end samples to integer codes.
+
+    Mid-tread mapping (matches VA):
+      ``code = floor((v_front - vrefn) / (vrefp - vrefn) * max_code + 0.5)``
+    then clip to ``[0, max_code]``. ``v_front`` is in volts; output is unitless code.
+    """
     if np.any(cfg.lsb <= 0.0):
         msg = "LSB must be positive."
         raise ValueError(msg)

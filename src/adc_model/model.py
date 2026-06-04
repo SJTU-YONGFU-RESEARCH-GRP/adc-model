@@ -1,9 +1,16 @@
 """Behavioral ADC model matching ``veriloga/configurable_adc.va``.
 
 Static ramps use two sampling policies:
-  - Noisy: one conversion per code dwell (``samples_per_code`` clocks).
-  - Ideal: quantize every clock; hold ``v_code`` until the bin changes (VA S&H).
-Dynamic captures always quantize on rising clock edges, then expand to S&H.
+  - **Noisy / DNL**: one conversion per rising clock edge at ``@(cross(clk))``
+    (``samples_per_code`` dwell clocks per code for histogram depth).
+  - **Ideal**: quantize the effective input every clock; hold ``v_code`` until the
+    integer bin changes (Verilog-A sample-and-hold, not one update per edge).
+
+Dynamic captures always quantize on rising clock edges (or uniform ``1/fs`` grid),
+then expand sparse edge decisions to a full-rate S&H ``v_code`` bus for CSV/plots.
+
+Ramp stimulus spans ``[vrefn + 0.5·LSB, vrefp - 0.5·LSB]`` so each interior code
+is visited at its ideal transition center without saturation pile-up at the rails.
 """
 
 from __future__ import annotations
@@ -34,7 +41,13 @@ def quantize_array(
     rng: np.random.Generator | None = None,
     dnl_profile: NDArray[np.float64] | None = None,
 ) -> NDArray[np.int64]:
-    """Quantize an array of analog samples with optional noise."""
+    """Quantize an array of analog samples with optional noise.
+
+    When noise is disabled, applies only gain/offset then
+    ``floor((v_front - vrefn) / (vrefp - vrefn) * max_code + 0.5)`` (V → code).
+    Otherwise runs the full front-end chain in :mod:`adc_model.noise` at spacing
+    ``dt`` (s), default ``1/fs_hz``.
+    """
     noise_cfg = noise or AdcNoiseConfig()
     sample_dt = dt if dt is not None else 1.0 / cfg.fs_hz
     generator = rng if rng is not None else np.random.default_rng(noise_cfg.noise_seed)
@@ -75,9 +88,14 @@ def _simulate_static_ideal_codes(
     vin: NDArray[np.float64],
     cfg: AdcConfig,
 ) -> NDArray[np.int64]:
-    """Quantize an ideal static ramp with Verilog-A-style sample-and-hold."""
+    """Quantize an ideal static ramp with Verilog-A-style sample-and-hold.
+
+    At every time index the comparator sees ``v_eff = gain·vin + offset_v`` (V),
+    but the held output code updates only when that instantaneous bin differs from
+    the previous held value (matches ``v_code`` in ideal VA static mode).
+    """
     v_eff = cfg.gain * vin + cfg.offset_v
-    # What the comparator would decide at each clock instant.
+    # Comparator decision at each clock instant (before S&H).
     codes_at_clk = quantize_front_end(v_eff, cfg)
 
     # Held output only changes when the instantaneous bin changes (not every clock).
@@ -97,7 +115,16 @@ def _fill_sample_hold_codes(
     edge_idx: NDArray[np.int64],
     num_samples: int,
 ) -> NDArray[np.int64]:
-    """Expand per-edge codes to a sample-and-hold waveform (matches ``v_code``)."""
+    """Expand per-edge codes to a sample-and-hold waveform (matches ``v_code``).
+
+    Args:
+        codes_at_edges: Integer code decided at each capture index.
+        edge_idx: Sample indices where conversions occur (rising ``clk`` or ``n/fs``).
+        num_samples: Length of the full simulation time grid.
+
+    Returns:
+        Held codes on the dense grid; constant between successive ``edge_idx`` entries.
+    """
     codes = np.zeros(num_samples, dtype=np.int64)
     if edge_idx[0] > 0:
         codes[: edge_idx[0]] = 0
@@ -112,7 +139,18 @@ def simulate_static(
     samples_per_code: int = 4,
     noise: AdcNoiseConfig | None = None,
 ) -> dict[str, NDArray[np.float64]]:
-    """Simulate a slow ramp capture for INL/DNL analysis."""
+    """Simulate a slow ramp capture for INL/DNL analysis.
+
+    Args:
+        cfg: ADC resolution, references, and sample rate ``fs_hz`` (Hz).
+        samples_per_code: Clock cycles spent near each code (histogram depth).
+            Raised to at least 16 when noise is enabled so dithered codes average out.
+        noise: Optional input-referred noise; when enabled, samples only on clock edges.
+
+    Returns:
+        Waveform dict with keys ``time`` (s), ``vin``/``v_code`` (V), ``clk`` (0/1),
+        and ``code`` (integer level as float for CSV).
+    """
     noise_cfg = noise or AdcNoiseConfig()
     # Deeper dwell reduces histogram variance when thermal noise dithers codes.
     if noise_cfg.enabled and samples_per_code < 16:
@@ -122,8 +160,8 @@ def simulate_static(
     dt = 1.0 / cfg.fs_hz
     time = np.arange(num_samples, dtype=np.float64) * dt
 
-    margin = 0.5 * cfg.lsb
-    # Ramp between code centers so each code is hit equally (no saturation pile-up).
+    margin = 0.5 * cfg.lsb  # V; half-LSB inset from rails
+    # Ramp between code centers so each interior bin gets ~equal hit count.
     vin = np.linspace(cfg.vrefn + margin, cfg.vrefp - margin, num_samples)
     # Clock period 1/fs (matches Spectre ``vsource`` pulse).
     clk = clock_pulse_waveform(time, cfg.fs_hz)
@@ -173,7 +211,22 @@ def simulate_dynamic(
     coherent_bin: int | None = None,
     noise: AdcNoiseConfig | None = None,
 ) -> dict[str, NDArray[np.float64]]:
-    """Simulate a coherent sine capture for FFT analysis."""
+    """Simulate a coherent sine capture for FFT analysis.
+
+    The input tone is ``vin = Vcm + A·sin(2π·fin·t)`` with default
+    ``A = 0.95·(vrefp - vrefn)/2`` (V). When ``fin_hz`` is omitted,
+    ``fin_hz = coherent_bin · fs_hz / num_samples`` so the tone lands on an FFT bin
+    (integer ``coherent_bin`` in ``(0, num_samples/2)``).
+
+    Args:
+        num_samples: FFT record length (one decision per ``1/fs`` period).
+        fin_hz: Input frequency (Hz); mutually exclusive with ``coherent_bin``.
+        amplitude: Peak sine amplitude (V).
+        coherent_bin: Coherent FFT bin index when ``fin_hz`` is not given.
+
+    Returns:
+        Same waveform keys as :func:`simulate_static`, plus ``fin_hz`` (Hz).
+    """
     noise_cfg = noise or AdcNoiseConfig()
     dt = 1.0 / cfg.fs_hz
     time = np.arange(num_samples, dtype=np.float64) * dt
