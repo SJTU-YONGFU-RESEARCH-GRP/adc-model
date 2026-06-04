@@ -106,7 +106,8 @@ def _needs_python_post_process(noise: AdcNoiseConfig) -> bool:
     """Return True when thermal or DNL must use the seeded Python chain.
 
     ngspice B-sources cannot reproduce VA ``$random`` per edge with the same seed
-    as Python; netlists stop at ``v_nl`` and finish noise/quantize in Python.
+    as Python. When True, netlists omit ``Bquant`` and export ``v_nl``; thermal,
+    DNL, and quantization finish in :func:`_finalize_ngspice_waveform`.
     """
     return noise.sigma_thermal_v > 0.0 or noise.dnl_sigma_lsb > 0.0
 
@@ -166,9 +167,15 @@ def _finalize_ngspice_waveform(
 ) -> dict[str, NDArray[np.float64]]:
     """Apply seeded thermal noise, DNL, and quantization after ``v_nl``.
 
-    For static ramps (``static_capture=True``), the analog front end and quantizer
-    run once per clock edge (matches Verilog-A), then sample-and-hold fills
-    ``v_code``. Dynamic captures use the same per-clock policy.
+    Hybrid SPICE/Python path when :func:`_needs_python_post_process` is True:
+      - **Static** (``static_capture=True``): front end + quantize at
+        :func:`static_capture_edge_indices`, S&H fill via
+        :func:`model._fill_sample_hold_codes`, export one row per edge.
+      - **Dynamic**: front end at :func:`uniform_fs_sample_indices` (one per ``1/fs``),
+        quantize each edge, no S&H expansion on the exported grid.
+
+    Jitter and nonlinearity are assumed already in the ngspice ``vin``/``v_nl`` path
+    when post-processing; this function re-applies edge-sampled thermal/DNL for parity.
     """
     if "v_nl" not in waveform:
         return waveform
@@ -380,7 +387,16 @@ def run_ngspice_netlist(
     max_samples: int | None = None,
     samples_per_code: int = 1,
 ) -> NgspiceRunResult:
-    """Write, execute, and convert an ngspice netlist."""
+    """Write, execute, and convert an ngspice netlist.
+
+    Post-simulation finalize decision tree:
+      1. ``stop_before_quantize = _needs_python_post_process(noise)`` (thermal or DNL).
+      2. ``edge_finalize = stop_before_quantize or not static_capture``.
+         - Ideal **static** with no thermal/DNL: SPICE exports ``v_code`` →
+           :func:`prepare_edge_aligned_waveform` only (clock lag on dense grids).
+         - Noisy static or any **dynamic**: read ``v_nl`` → :func:`_finalize_ngspice_waveform`.
+      3. Dynamic runs may truncate to ``max_samples`` after finalize.
+    """
     netlist_path.parent.mkdir(parents=True, exist_ok=True)
     include_dir.mkdir(parents=True, exist_ok=True)
     wrdata_path.parent.mkdir(parents=True, exist_ok=True)
@@ -411,7 +427,7 @@ def run_ngspice_netlist(
         )
 
     stop_before_quantize = _needs_python_post_process(noise)
-    # Ideal static keeps B-quantizer in SPICE; noisy/dynamic finish in Python.
+    # Ideal static: B-quantizer in SPICE → edge-align only. Else: Python finalize from v_nl.
     edge_finalize = stop_before_quantize or not static_capture
     analog_signal = "v_nl" if edge_finalize else "v_code"
     waveform = read_waveform_wrdata(wrdata_path, analog_signal=analog_signal)

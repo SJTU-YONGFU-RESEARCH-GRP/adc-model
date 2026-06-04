@@ -36,7 +36,8 @@ def rising_edge_indices(
     return np.where((clk[1:] > threshold) & (clk[:-1] <= threshold))[0] + 1
 
 
-# Dense Spectre/ngspice transients settle ``v_code`` one point after ``clk`` rises.
+# Dense Spectre/ngspice transients: ``v_code`` updates one UI after ``clk`` rises
+# (Verilog-A ``@(cross(clk))`` event vs. held output settling on the fine grid).
 _V_CODE_EDGE_OFFSET = 1
 
 
@@ -45,7 +46,11 @@ def uniform_fs_sample_indices(
     time: NDArray[np.float64],
     fs_hz: float,
 ) -> NDArray[np.int64]:
-    """Return one sample index per ADC clock period on a uniform ``1/fs`` grid."""
+    """Return one sample index per ADC clock period on a uniform ``1/fs`` grid.
+
+    When ``median(dt)`` already equals ``1/fs`` (coarse grid), returns ``0..N-1``.
+    Otherwise maps ideal sample times ``n/fs`` (s) onto the transient via ``searchsorted``.
+    """
     if num_samples <= 0:
         return np.array([], dtype=np.int64)
     if len(time) < 2 or fs_hz <= 0.0:
@@ -68,10 +73,20 @@ def adc_capture_edge_indices(
 ) -> NDArray[np.int64]:
     """Return indices where the ADC samples (rising ``clk`` or one per ``1/fs``).
 
-    On a coarse grid with ``dt = 1/fs`` (Python / ngspice at ``fs``), every point
-    is one clock period and sampling aligns with Spectre's ``period=1/fs`` pulse.
+    Clock alignment:
+      - **Coarse grid** (``median(dt) ≈ 1/fs``): sample index ``n`` at ``t = n/fs``
+        (Python model, ngspice with ``maxstep = 1/fs``).
+      - **Dense grid** (``maxstep < 1/fs``): rising-edge indices from ``clk``; index 0
+        is prepended so the first conversion is included.
 
-    On dense transients (``maxstep < 1/fs``), use detected rising edges.
+    Args:
+        time: Simulation time stamps (s).
+        fs_hz: ADC sample rate (Hz).
+        clk: Optional clock waveform (0/1); synthesized from ``time`` if absent on dense grids.
+        min_edges: Minimum edges required before trusting ``clk`` detection.
+
+    Returns:
+        Integer indices into ``time`` / ``vin`` for each conversion instant.
     """
     num_samples = len(time)
     if min_edges is None:
@@ -111,11 +126,19 @@ def static_capture_edge_indices(
 
     Matches ``configurable_adc.va`` ``@(cross(clk))``: one conversion per clock
     period on the uniform grid ``t = n/fs`` for ``n = 0 .. num_samples-1``.
-    Ramp depth is ``num_codes * samples_per_code`` clock cycles; the
-    ``samples_per_code`` argument is kept for API compatibility with testbench scripts.
+    Ramp depth is ``num_codes * samples_per_code`` clock cycles; ``samples_per_code``
+    sets dwell length for histogram averaging (API parity with testbench scripts).
 
-    On dense transients (Spectre/ngspice ``maxstep < 1/fs``), indices are chosen at
-    those uniform sample times rather than the first ``num_samples`` dense points.
+    On dense transients (Spectre/ngspice ``maxstep < 1/fs``), pick the time stamp
+    nearest each ideal ``n/fs`` via ``searchsorted`` rather than the first N dense points.
+
+    Args:
+        num_samples: Number of ADC decisions to export (``num_codes * samples_per_code``).
+        time: Simulation time array (s); required for dense-grid alignment.
+        fs_hz: Sample rate (Hz).
+
+    Returns:
+        Indices into ``vin`` where the front end is evaluated for static capture.
     """
     _ = (clk, samples_per_code, min_edges)
     if time is None or fs_hz is None or fs_hz <= 0.0 or num_samples <= 0:
@@ -141,9 +164,15 @@ def prepare_edge_aligned_waveform(
 ) -> dict[str, NDArray[np.float64]]:
     """Downsample a dense transient to one ADC sample per ``1/fs`` clock period.
 
-    Matches Spectre ``@(cross(clk))`` sampling: pick rising clock edges on dense
-    grids and apply a one-point ``v_code`` settle delay. Coarse ``dt = 1/fs``
-    waveforms are returned unchanged.
+    Matches Spectre ``@(cross(clk))`` sampling: on dense grids, sample at
+    ``rising_edge(clk) + _V_CODE_EDGE_OFFSET`` so ``v_code`` aligns with the held
+    output after the edge. Coarse ``dt = 1/fs`` waveforms pass through unchanged
+    (optionally truncated to ``max_samples`` via :func:`uniform_fs_sample_indices`).
+
+    Args:
+        waveform: Must include ``time``; dense paths require ``clk``.
+        fs_hz: ADC sample rate (Hz).
+        max_samples: Cap on exported rows after downsampling.
     """
     time = waveform["time"]
     num_samples = len(time)

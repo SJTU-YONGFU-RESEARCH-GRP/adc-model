@@ -14,6 +14,7 @@
 
 ## Table of contents
 
+- [Model reference](#model-reference)
 - [Features](#features)
 - [Requirements](#requirements)
 - [Installation](#installation)
@@ -30,6 +31,10 @@
 - [Project layout](#project-layout)
 - [Development](#development)
 - [License](#license)
+
+## Model reference
+
+For signal-chain equations, sampling policies (ideal vs noisy static, dynamic S&H), INL/DNL methods, coherent FFT metrics, and multi-engine (Python / ngspice / Spectre) behavior, see **[MODEL.md](MODEL.md)**.
 
 ## Features
 

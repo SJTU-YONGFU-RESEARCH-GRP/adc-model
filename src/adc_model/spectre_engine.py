@@ -76,8 +76,13 @@ def _effective_samples_per_code(samples_per_code: int, noise: AdcNoiseConfig) ->
 def read_spectre_nutascii(path: Path) -> dict[str, NDArray[np.float64]]:
     """Read a Spectre nutascii transient raw file.
 
-    Spectre writes one index line per sample (index, time, vin, clk, ...) and a
-    follow-on line for any remaining real variables (typically ``v_code``).
+    Nutascii layout:
+      - Header ``Variables:`` lists ``index name unit`` triplets per signal.
+      - ``Values:`` section: one row per time point with leading index + scalars;
+        when the row is shorter than the variable count, the next line is a
+        continuation (commonly carries ``v_code`` alone).
+
+    Units follow Spectre export (typically ``time`` in s, ``vin``/``v_code`` in V).
 
     Args:
         path: Nutascii raw file produced by ``spectre -format nutascii -raw``.
@@ -248,7 +253,15 @@ def prepare_spectre_waveform(
 ) -> dict[str, NDArray[np.float64]]:
     """Downsample dense Spectre transient output to one ADC sample per clock edge.
 
-    See :func:`adc_model.io.prepare_edge_aligned_waveform`.
+    Spectre ``maxstep`` is often finer than ``1/fs``; analysis needs one row per
+    ADC clock. Delegates to :func:`adc_model.io.prepare_edge_aligned_waveform`, which
+    picks ``rising_edge(clk) + 1`` on dense grids (``v_code`` lag) or passes through
+    when ``median(dt) ≈ 1/fs``.
+
+    Args:
+        waveform: Raw nutascii dict (dense transient).
+        fs_hz: ADC sample rate (Hz).
+        max_samples: Optional cap after downsampling.
     """
     return prepare_edge_aligned_waveform(
         waveform,

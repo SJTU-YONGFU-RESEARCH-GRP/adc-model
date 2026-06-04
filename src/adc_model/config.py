@@ -12,7 +12,21 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class AdcConfig:
-    """Static configuration for the configurable ADC testbench."""
+    """Static configuration for the configurable ADC testbench.
+
+    Fields (shared by Python, Spectre, ngspice):
+        bits: ADC resolution; full-scale code is ``2**bits - 1``.
+        vrefp: Positive reference (V).
+        vrefn: Negative reference (V); full span ``vrefp - vrefn``.
+        gain: Input gain applied before quantization (dimensionless).
+        offset_v: Input-referred DC offset added after gain (V).
+        fs_hz: Sample / clock rate (Hz); simulation time step is ``1/fs_hz`` (s).
+
+    Derived:
+        lsb: ``(vrefp - vrefn) / max_code`` (V/LSB).
+        max_code: ``2**bits - 1``.
+        num_codes: ``max_code + 1`` quantizer levels (0 .. max_code).
+    """
 
     bits: int = 10
     vrefp: float = 1.0
@@ -39,7 +53,19 @@ class AdcConfig:
 
 @dataclass(frozen=True)
 class AdcNoiseConfig:
-    """Input-referred noise and nonlinearity contributions."""
+    """Input-referred noise and nonlinearity contributions.
+
+    Mirrors the Verilog-A ``parameters`` block. CLI ``--ideal`` sets all magnitudes
+    to zero so :attr:`enabled` is False.
+
+    Fields:
+        sigma_thermal_v: RMS thermal noise voltage (V), added before quantize.
+        jitter_rms_s: RMS aperture jitter (s); converted to volts via ``dv/dt``.
+        nonlinearity_a2: Quadratic coefficient on normalized input ``x = (v-Vcm)/Vfs``.
+        nonlinearity_a3: Cubic coefficient on ``x`` (same normalization).
+        dnl_sigma_lsb: RMS per-code threshold spread (LSB); fixed profile per run.
+        noise_seed: Seed for thermal/jitter RNG; DNL profile uses ``noise_seed + 17``.
+    """
 
     sigma_thermal_v: float = 0.0
     jitter_rms_s: float = 0.0

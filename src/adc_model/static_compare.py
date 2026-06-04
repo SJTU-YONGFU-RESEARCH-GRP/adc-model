@@ -1,4 +1,9 @@
-"""Utilities for comparing static ramp captures across simulation engines."""
+"""Utilities for comparing static ramp captures across simulation engines.
+
+**Transitions** count S&H updates (``code[i] != code[i-1]``), which can exceed the
+number of unique codes when noise dithers. **Expected hits/code** is the nominal
+histogram mean for a uniform ramp: ``num_samples / max_code`` interior codes.
+"""
 
 from __future__ import annotations
 
@@ -43,7 +48,12 @@ def expected_hits_per_code(
     samples_per_code: int,
     noise: AdcNoiseConfig,
 ) -> float:
-    """Return the nominal histogram hits per interior code for a uniform ramp."""
+    """Return the nominal histogram hits per interior code for a uniform ramp.
+
+    Uses the same effective ``samples_per_code`` (min 16 with noise) as
+    :func:`adc_model.model.simulate_static`. Formula:
+      ``expected = (num_codes * samples_per_code) / max_code`` hits per code 1..N-1.
+    """
     effective_spc = samples_per_code
     if noise.enabled and effective_spc < 16:
         effective_spc = 16
@@ -74,14 +84,23 @@ def analyze_static_waveform(
     *,
     inl_dnl_method: str,
 ) -> StaticEngineStats:
-    """Load a static CSV and compute ramp / INL/DNL summary metrics."""
+    """Load a static CSV and compute ramp / INL/DNL summary metrics.
+
+    Args:
+        engine: Label for the comparison table (e.g. ``python``, ``ngspice``).
+        waveform_path: Exported static waveform CSV.
+        inl_dnl_method: ``histogram``, ``transition``, or ``auto`` (see :mod:`static`).
+
+    Returns:
+        Summary including transition count, hit-count spread, and max |INL|/|DNL| (LSB).
+    """
     if not waveform_path.is_file():
         msg = f"Waveform not found for {engine}: {waveform_path}"
         raise FileNotFoundError(msg)
 
     data = read_waveform_csv(waveform_path)
     codes = decode_codes(data["v_code"], cfg)
-    # Count S&H updates (not necessarily unique codes when noise dithers).
+    # Transition = any change in held output between consecutive samples (S&H edges).
     transitions = int(np.sum(codes[1:] != codes[:-1]))
     count_min, count_max, count_mean, count_std = code_hit_stats(codes, cfg)
     linearity = compute_inl_dnl(data["vin"], codes, cfg, method=inl_dnl_method)

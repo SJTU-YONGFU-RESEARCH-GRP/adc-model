@@ -1,4 +1,9 @@
-"""Dynamic FFT metrics and spectrum plotting."""
+"""Dynamic FFT metrics and spectrum plotting.
+
+FFT uses a coherent input tone (integer bin). One-sided power is doubled for
+interior bins; magnitudes are dBFS relative to a full-scale sine at ``max_code/2``.
+SNDR, SFDR, THD, and ENOB follow standard single-tone definitions below.
+"""
 
 from __future__ import annotations
 
@@ -26,7 +31,15 @@ from adc_model.plot_style import (
 
 @dataclass(frozen=True)
 class HarmonicTone:
-    """Identified tone in the output spectrum."""
+    """Identified tone in the output spectrum.
+
+    Attributes:
+        order: Harmonic number (1 = fundamental).
+        bin_index: rFFT bin index.
+        freq_hz: Tone frequency (Hz) = ``bin_index · fs / N``.
+        magnitude_dbfs: Peak magnitude (dBFS).
+        aliased: True when the harmonic folded about Nyquist into this bin.
+    """
 
     order: int
     bin_index: int
@@ -99,7 +112,12 @@ def _find_signal_bin(spectrum_power: NDArray[np.float64], coherent_bin: int) -> 
 
 
 def _folded_harmonic_bin(fundamental_bin: int, order: int, num_samples: int) -> tuple[int, bool] | None:
-    """Return the rFFT bin index for harmonic ``order``, with aliasing flag."""
+    """Return the rFFT bin index for harmonic ``order``, with aliasing flag.
+
+    Ideal bin is ``fundamental_bin * order``. If that exceeds Nyquist
+    (``num_samples // 2``), fold as ``alias_bin = num_samples - raw_bin`` (Hz maps
+    into the first Nyquist zone). Returns ``None`` when no valid folded bin exists.
+    """
     if order < 1:
         return None
 
@@ -183,7 +201,21 @@ def compute_dynamic_metrics(
     exclude_bins: int = 2,
     min_harmonic_dbfs: float = -110.0,
 ) -> DynamicMetrics:
-    """Compute SNDR, SFDR, ENOB, and THD from output codes."""
+    """Compute SNDR, SFDR, ENOB, and THD from output codes.
+
+    Args:
+        codes: Time-domain ADC output codes (one coherent record).
+        fin_hz: Input tone frequency (Hz); must map to an integer FFT bin.
+        num_harmonics: Highest harmonic order to search (2 .. H).
+        exclude_bins: Guard bins around each tone excluded from noise/spur sums.
+        min_harmonic_dbfs: Ignore harmonics below this magnitude (dBFS).
+
+    Metrics (power in linear FFT bins, signal at ``signal_bin``):
+      ``SNDR = 10·log10(P_signal / P_noise)`` — noise is all non-excluded bins.
+      ``THD  = -10·log10(P_harmonics / P_signal)`` — sum of H2..Hn magnitudes (dB).
+      ``SFDR = 10·log10(P_signal / max spur)`` — largest non-excluded spur.
+      ``ENOB = (SNDR - 1.76) / 6.02`` (bits), sine-wave convention.
+    """
     num_samples = len(codes)
     if num_samples < 16:
         msg = "Need at least 16 samples for FFT analysis."
@@ -198,10 +230,10 @@ def compute_dynamic_metrics(
     centered = codes.astype(np.float64) - np.mean(codes)
     spectrum = np.fft.rfft(centered)
     power = np.abs(spectrum) ** 2
-    # One-sided spectrum: double interior bins (DC/Nyquist unchanged).
+    # Parseval: one-sided PSD — double interior bins (DC/Nyquist unchanged).
     power[1:-1] *= 2.0
 
-    # dBFS reference: sine peak at max_code/2 (full-scale amplitude).
+    # dBFS reference: full-scale sine with peak code amplitude max_code/2 (power = A²/2).
     full_scale_power = (cfg.max_code / 2.0) ** 2 / 2.0
     magnitude_dbfs = 10.0 * np.log10(np.maximum(power / full_scale_power, 1.0e-30))
     if power[0] <= 1.0e-30:
