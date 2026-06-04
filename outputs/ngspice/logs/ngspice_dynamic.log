@@ -1,9 +1,9 @@
 # ngspice simulation log: dynamic_spectrum.cir
-Generated: 2026-06-04 09:58:42 UTC
+Generated: 2026-06-04 11:20:26 UTC
 Engine: ngspice behavioral netlist (reference: configurable_adc.va)
-Netlist: /home/yongfu/proj/adc-model/outputs/ngspice/ngspice/dynamic_spectrum.cir
-Includes: /home/yongfu/proj/adc-model/outputs/ngspice/ngspice/includes
-Command: ngspice -b /home/yongfu/proj/adc-model/outputs/ngspice/ngspice/dynamic_spectrum.cir
+Netlist: /home/yongfu/proj/adc-calibration/model/adc-model/outputs/ngspice/ngspice/dynamic_spectrum.cir
+Includes: /home/yongfu/proj/adc-calibration/model/adc-model/outputs/ngspice/ngspice/includes
+Command: ngspice -b /home/yongfu/proj/adc-calibration/model/adc-model/outputs/ngspice/ngspice/dynamic_spectrum.cir
 
 Note: No compatibility mode selected!
 
@@ -28,6 +28,6 @@ bgain#branch                                 0
 vclk#branch                                  0
 vin#branch                                   0
 
- Reference value :  1.56865e-04 Reference value :  3.44000e-04 Reference value :  5.08500e-04 Reference value :  6.02000e-04 Reference value :  7.78229e-04 Reference value :  9.52501e-04 Reference value :  1.14173e-03 Reference value :  1.31850e-03 Reference value :  1.49400e-03 Reference value :  1.65151e-03 Reference value :  1.82400e-03 Reference value :  1.99173e-03 Reference value :  2.14950e-03 Reference value :  2.28800e-03 Reference value :  2.43106e-03 Reference value :  2.57606e-03 Reference value :  2.70850e-03 Reference value :  2.86450e-03 Reference value :  3.01400e-03 Reference value :  3.14500e-03 Reference value :  3.29451e-03 Reference value :  3.42523e-03 Reference value :  3.53836e-03 Reference value :  3.60773e-03 Reference value :  3.74750e-03 Reference value :  3.88403e-03 Reference value :  4.04161e-03 Reference value :  4.20400e-03 Reference value :  4.33850e-03 Reference value :  4.49050e-03 Reference value :  4.64150e-03 Reference value :  4.76950e-03 Reference value :  4.91550e-03 Reference value :  5.06050e-03 Reference value :  5.19851e-03 Reference value :  5.32551e-03 Reference value :  5.46611e-03 Reference value :  5.60301e-03 Reference value :  5.72050e-03 Reference value :  5.85550e-03 Reference value :  5.97150e-03 Reference value :  6.10050e-03 Reference value :  6.21350e-03 Reference value :  6.34111e-03 Reference value :  6.45150e-03 Reference value :  6.56650e-03 Reference value :  6.63936e-03 Reference value :  6.71500e-03 Reference value :  6.83300e-03 Reference value :  6.94800e-03 Reference value :  7.07000e-03 Reference value :  7.17550e-03 Reference value :  7.28500e-03 Reference value :  7.40150e-03 Reference value :  7.51200e-03 Reference value :  7.62250e-03 Reference value :  7.74101e-03 Reference value :  7.85650e-03 Reference value :  8.00350e-03 Reference value :  8.14150e-03
+ Reference value :  3.37500e-04 Reference value :  7.12865e-04 Reference value :  1.08411e-03 Reference value :  1.43573e-03 Reference value :  1.77300e-03 Reference value :  2.07900e-03 Reference value :  2.35823e-03 Reference value :  2.62973e-03 Reference value :  2.89400e-03 Reference value :  3.15501e-03 Reference value :  3.41200e-03 Reference value :  3.66300e-03 Reference value :  3.90701e-03 Reference value :  4.18350e-03 Reference value :  4.44000e-03 Reference value :  4.68186e-03 Reference value :  4.91650e-03 Reference value :  5.15100e-03 Reference value :  5.37853e-03 Reference value :  5.60350e-03 Reference value :  5.82150e-03 Reference value :  6.03850e-03 Reference value :  6.25300e-03 Reference value :  6.46161e-03 Reference value :  6.66500e-03 Reference value :  6.86600e-03 Reference value :  7.04356e-03 Reference value :  7.25101e-03 Reference value :  7.45073e-03 Reference value :  7.64150e-03 Reference value :  7.84300e-03 Reference value :  8.10001e-03
 No. of Data Rows : 323301
 Note: Simulation executed from .control section 
