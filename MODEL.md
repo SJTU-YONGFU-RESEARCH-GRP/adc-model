@@ -8,7 +8,7 @@ The Python implementation in `src/adc_model/` is a numerical twin of the referen
 
 ## Overview
 
-The model represents a **single-channel, unipolar (or differential-referenced) SAR-style ADC** at the behavioral level:
+The model represents a **single-channel, unipolar (or differential-referenced) sampled ADC** at the behavioral level:
 
 - **Analog front end:** aperture jitter, static gain/offset mismatch, weak even/odd nonlinearity, input-referred thermal noise, optional per-code comparator threshold spread (DNL).
 - **Quantizer:** mid-tread rounding to integer codes `0 … max_code`, with saturation at the rails.
