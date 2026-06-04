@@ -15,6 +15,40 @@ from adc_model.spectre_engine import (
 )
 
 
+def test_read_spectre_nutascii_parses_multi_line_continuations(tmp_path: Path) -> None:
+    """TI-style nutascii with several tab-prefixed rows per sample should parse."""
+    raw = tmp_path / "ti_tran.nutascii"
+    raw.write_text(
+        "\n".join(
+            [
+                "Plotname: Transient Analysis",
+                "No. Variables: 6",
+                "Variables:\t0\ttime\ts",
+                "\t\t1\tvin\tV",
+                "\t\t2\tclk_mux\tV",
+                "\t\t3\tclk0\tV",
+                "\t\t4\tclk1\tV",
+                "\t\t5\tv_code0\tV",
+                "Values:",
+                " 0\t0\t0.1\t0",
+                "\t0\t0.5",
+                "\t1.5",
+                " 1\t1e-9\t0.2\t1",
+                "\t1\t1.5",
+                "\t2.5",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    data = read_spectre_nutascii(raw)
+    np.testing.assert_allclose(data["time"], [0.0, 1e-9])
+    np.testing.assert_allclose(data["vin"], [0.1, 0.2])
+    np.testing.assert_allclose(data["clk_mux"], [0.0, 1.0])
+    np.testing.assert_allclose(data["clk0"], [0.0, 1.0])
+    np.testing.assert_allclose(data["clk1"], [0.5, 1.5])
+    np.testing.assert_allclose(data["v_code0"], [1.5, 2.5])
+
+
 def test_read_spectre_nutascii_parses_split_rows(tmp_path: Path) -> None:
     """Nutascii rows with a follow-on line per sample should parse correctly."""
     raw = tmp_path / "tran.nutascii"
