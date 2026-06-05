@@ -233,8 +233,9 @@ def compute_dynamic_metrics(
     # Parseval: one-sided PSD — double interior bins (DC/Nyquist unchanged).
     power[1:-1] *= 2.0
 
-    # dBFS reference: full-scale sine with peak code amplitude max_code/2 (power = A²/2).
-    full_scale_power = (cfg.max_code / 2.0) ** 2 / 2.0
+    # dBFS reference: coherent full-scale bin power (includes record length N).
+    amplitude = cfg.max_code / 2.0
+    full_scale_power = float((num_samples * amplitude / np.sqrt(2.0)) ** 2)
     magnitude_dbfs = 10.0 * np.log10(np.maximum(power / full_scale_power, 1.0e-30))
     if power[0] <= 1.0e-30:
         magnitude_dbfs[0] = np.nan
