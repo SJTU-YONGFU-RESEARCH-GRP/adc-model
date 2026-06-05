@@ -25,7 +25,8 @@ from adc_model.simulation_log import (
     run_spectre_testbench,
     write_python_simulation_log,
 )
-from adc_model.static import decode_codes
+from adc_model.report import DynamicTestConfig, StaticTestConfig, write_simulation_summary
+from adc_model.static import compute_inl_dnl, decode_codes
 
 
 def _parse_args() -> argparse.Namespace:
@@ -35,6 +36,12 @@ def _parse_args() -> argparse.Namespace:
     add_simulator_args(parser)
     parser.add_argument("--num-samples", type=int, default=8192)
     parser.add_argument("--coherent-bin", type=int, default=997)
+    parser.add_argument(
+        "--samples-per-code",
+        type=int,
+        default=4,
+        help="Static ramp hits per code (used when writing SUMMARY.md).",
+    )
     parser.add_argument(
         "--fin",
         type=float,
@@ -162,6 +169,42 @@ def main() -> int:
         )
     else:
         print("Noise        : disabled (--ideal)")
+
+    static_csv = output_dir / "static_waveform.csv"
+    inl_plot = output_dir / "inl_dnl.svg"
+    if static_csv.is_file() and inl_plot.is_file():
+        static_data = read_waveform_csv(static_csv)
+        static_codes = decode_codes(static_data["v_code"], cfg)
+        static_method = "histogram" if noise.enabled else "auto"
+        static_result = compute_inl_dnl(
+            static_data["vin"],
+            static_codes,
+            cfg,
+            method=static_method,
+        )
+        summary_path = write_simulation_summary(
+            output_dir=output_dir,
+            adc=cfg,
+            noise=noise,
+            static_cfg=StaticTestConfig(
+                samples_per_code=args.samples_per_code,
+                inl_dnl_method=static_method,
+                engine=engine,
+            ),
+            dynamic_cfg=DynamicTestConfig(
+                num_samples=args.num_samples,
+                coherent_bin=args.coherent_bin,
+                fin_hz=fin_hz,
+                engine=engine,
+            ),
+            static_result=static_result,
+            dynamic_result=metrics,
+            simulator=simulator,
+            log_paths=log_paths,
+            veriloga_model=veriloga_model,
+        )
+        print(f"Summary      : {summary_path}")
+
     return 0
 
 

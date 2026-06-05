@@ -21,7 +21,7 @@ Results are written under:
   \${OUTPUT_ROOT}/spectre/
 
 Each directory contains static_waveform.csv, inl_dnl.svg, dynamic_waveform.csv,
-spectrum.svg, logs/, and veriloga/ artifacts.
+spectrum.svg, SUMMARY.md, logs/, and veriloga/ artifacts.
 
 Options:
   --ideal          Pass --ideal to each run (quantizer-limited, no noise).
@@ -133,22 +133,36 @@ run_engine() {
 echo "Output root: ${OUTPUT_ROOT}"
 echo "Extra args : ${EXTRA_ARGS[*]-<none>}"
 
+ENGINES_RUN=(python)
+
 run_engine python
 
 if require_command ngspice "ngspice"; then
+    ENGINES_RUN+=(ngspice)
     run_engine ngspice
 fi
 
 if require_command spectre "Cadence Spectre"; then
+    ENGINES_RUN+=(spectre)
     run_engine spectre
 fi
 
 echo ""
 echo "All requested simulations finished."
-echo "  python  -> ${OUTPUT_ROOT}/python/"
-if command -v ngspice >/dev/null 2>&1; then
-    echo "  ngspice -> ${OUTPUT_ROOT}/ngspice/"
+echo "Summaries:"
+for engine in "${ENGINES_RUN[@]}"; do
+    summary_path="${OUTPUT_ROOT}/${engine}/SUMMARY.md"
+    if [[ -f "${summary_path}" ]]; then
+        echo "  ${engine} -> ${summary_path}"
+    else
+        echo "  ${engine} -> ${summary_path} (missing)" >&2
+    fi
+done
+
+echo ""
+echo "========== summary and comparisons =========="
+COMPARE_ARGS=(--output-root "${OUTPUT_ROOT}" --check-parity --engines "${ENGINES_RUN[@]}")
+if [[ ${#EXTRA_ARGS[@]} -gt 0 ]]; then
+    COMPARE_ARGS+=("${EXTRA_ARGS[@]}")
 fi
-if command -v spectre >/dev/null 2>&1; then
-    echo "  spectre -> ${OUTPUT_ROOT}/spectre/"
-fi
+"${PYTHON}" scripts/compare_engines.py "${COMPARE_ARGS[@]}"

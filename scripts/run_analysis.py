@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run static and dynamic ADC simulations, analysis, and REPORT.md generation."""
+"""Run static and dynamic ADC simulations, analysis, and SUMMARY.md generation."""
 
 from __future__ import annotations
 
@@ -22,13 +22,12 @@ from adc_model.model import simulate_dynamic, simulate_static
 from adc_model.ngspice_engine import run_dynamic_testbench, run_static_testbench
 from adc_model.report import (
     DynamicTestConfig,
-    SimulationReport,
+    SUMMARY_FILENAME,
     StaticTestConfig,
-    write_report,
+    write_simulation_summary,
 )
 from adc_model.simulation_log import (
     archive_veriloga_artifacts,
-    collect_log_files,
     prepare_output_dirs,
     run_spectre_testbench,
     write_python_simulation_log,
@@ -40,7 +39,7 @@ def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
             "Run static INL/DNL and dynamic FFT simulations, plot results, "
-            "archive logs, and write REPORT.md."
+            "archive logs, and write SUMMARY.md."
         ),
     )
     add_adc_args(parser)
@@ -59,13 +58,13 @@ def _parse_args() -> argparse.Namespace:
         "--output-dir",
         type=Path,
         default=Path("outputs/simulation"),
-        help="Directory for waveforms, figures, logs, and REPORT.md.",
+        help="Directory for waveforms, figures, logs, and SUMMARY.md.",
     )
     parser.add_argument(
         "--report",
         type=Path,
         default=None,
-        help="Report path (default: <output-dir>/REPORT.md).",
+        help=f"Summary path (default: <output-dir>/{SUMMARY_FILENAME}).",
     )
     return parser.parse_args()
 
@@ -75,7 +74,7 @@ def main() -> int:
     repo_root = Path(__file__).resolve().parents[1]
     output_dir = args.output_dir
     output_dir.mkdir(parents=True, exist_ok=True)
-    report_path = args.report or (output_dir / "REPORT.md")
+    report_path = args.report or (output_dir / SUMMARY_FILENAME)
 
     cfg = build_adc_config(args)
     noise = build_noise_config(args)
@@ -206,7 +205,8 @@ def main() -> int:
             veriloga_model=veriloga_model,
         )
 
-    report = SimulationReport(
+    written_report = write_simulation_summary(
+        output_dir=output_dir,
         adc=cfg,
         noise=noise,
         static_cfg=StaticTestConfig(
@@ -222,17 +222,14 @@ def main() -> int:
         ),
         static_result=static_result,
         dynamic_result=dynamic_result,
-        static_plot=inl_plot,
-        dynamic_plot=spectrum_plot,
-        static_csv=static_csv,
-        dynamic_csv=dynamic_csv,
-        generated_at=datetime.now(tz=UTC),
-        log_files=collect_log_files(log_paths, simulator=simulator),
+        simulator=simulator,
+        log_paths=log_paths,
         veriloga_model=veriloga_model,
+        summary_path=report_path,
+        generated_at=datetime.now(tz=UTC),
     )
-    written_report = write_report(report, report_path)
 
-    print(f"Report       : {written_report}")
+    print(f"Summary      : {written_report}")
     print(f"Engine       : {engine}")
     print(f"Logs         : {log_paths.logs_dir.resolve()}")
     print(f"Verilog-A    : {log_paths.veriloga_dir.resolve()}")

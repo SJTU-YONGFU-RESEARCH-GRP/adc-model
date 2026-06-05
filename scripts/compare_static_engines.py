@@ -132,9 +132,8 @@ def main() -> int:
                 dnl_tol, inl_tol, trans_lo, trans_hi = 0.02, 0.02, 0.98, 1.02
                 check_transitions = True
             else:
-                # Spectre uses VA $random; INL/DNL should track Python after per-clock alignment.
-                dnl_tol, inl_tol = 0.02, 0.5
-                check_transitions = False
+                dnl_tol, inl_tol, trans_lo, trans_hi = 0.02, 0.02, 0.98, 1.02
+                check_transitions = True
             if dnl_delta > dnl_tol:
                 failures.append(f"{row.engine}: |DNL| delta {dnl_delta:.3f} > {dnl_tol}")
             if inl_delta > inl_tol:

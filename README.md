@@ -45,7 +45,7 @@ For signal-chain equations, sampling policies (ideal vs noisy static, dynamic S&
 | **Dynamic testbench** | Coherent sine capture, FFT metrics (SNDR, SFDR, THD, ENOB, harmonics), spectrum SVG |
 | **Multi-engine** | Run the same testbenches in Python, Cadence Spectre, or ngspice behavioral netlists |
 | **Clock alignment** | `1/fs` pulse clock; one sample per rising edge (dense transients downsampled to match Verilog-A `@(cross(clk))`) |
-| **Reporting** | `REPORT.md` with configuration tables, metrics, and figure links |
+| **Reporting** | `SUMMARY.md` with configuration tables, metrics, and figure links |
 
 ## Requirements
 
@@ -92,6 +92,7 @@ outputs/
 ├── python/
 │   ├── static_waveform.csv, inl_dnl.svg
 │   ├── dynamic_waveform.csv, spectrum.svg
+│   ├── SUMMARY.md     # configuration, metrics, embedded plot links
 │   ├── logs/          # *.log (python, spectre, ngspice)
 │   └── veriloga/      # archived configurable_adc.va + testbench copies
 ├── ngspice/           # same CSV/SVG layout + ngspice/*.cir rendered netlists
@@ -176,7 +177,7 @@ python scripts/compare_static_engines.py --output-root outputs --check-parity
 
 ### Full analysis report
 
-Run static and dynamic simulations, generate plots, archive logs, and write `REPORT.md`:
+Run static and dynamic simulations, generate plots, archive logs, and write `SUMMARY.md`:
 
 ```bash
 python scripts/run_analysis.py --output-dir outputs/python
@@ -241,7 +242,8 @@ Script-specific options:
 | `run_dynamic.py` | `--num-samples` | `8192` | FFT capture length |
 | `run_dynamic.py` | `--coherent-bin` | `997` | Coherent FFT bin index |
 | `run_dynamic.py` | `--fin` | coherent bin | Input tone frequency (Hz) |
-| `run_analysis.py` | `--report` | `<output-dir>/REPORT.md` | Report output path |
+| `run_analysis.py` | `--report` | `<output-dir>/SUMMARY.md` | Summary output path |
+| `run_dynamic.py` | `--samples-per-code` | `4` | Static ramp hits per code (for SUMMARY.md) |
 
 ## Python API
 
@@ -374,7 +376,7 @@ adc-model/
 │   ├── install_python.sh      # Create venv and editable install
 │   ├── run_all_simulations.sh     # All engines: static + dynamic (6 runs)
 │   ├── compare_static_engines.py  # Static waveform comparison table
-│   ├── run_analysis.py            # Static + dynamic + REPORT.md
+│   ├── run_analysis.py            # Static + dynamic + SUMMARY.md
 │   ├── run_static.py          # INL/DNL testbench
 │   └── run_dynamic.py         # FFT spectrum testbench
 ├── src/adc_model/             # Installable Python package
@@ -385,7 +387,7 @@ adc-model/
 │   ├── dynamic.py             # FFT metrics and spectrum plots
 │   ├── spectre_engine.py      # Spectre driver helpers
 │   ├── ngspice_engine.py      # ngspice netlist rendering
-│   └── report.py              # REPORT.md generation
+│   └── report.py              # SUMMARY.md generation
 ├── testbench/
 │   ├── spectre/               # Spectre netlists (.scs)
 │   └── ngspice/               # ngspice netlists (.cir)

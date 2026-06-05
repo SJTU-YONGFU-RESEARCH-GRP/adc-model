@@ -8,7 +8,10 @@ from pathlib import Path
 
 from adc_model.config import AdcConfig, AdcNoiseConfig
 from adc_model.dynamic import DynamicMetrics
+from adc_model.simulation_log import SimulationLogPaths, collect_log_files
 from adc_model.static import StaticLinearity
+
+SUMMARY_FILENAME = "SUMMARY.md"
 
 
 @dataclass(frozen=True)
@@ -179,7 +182,7 @@ def render_report_markdown(report: SimulationReport, report_path: Path) -> str:
     ]
 
     sections = [
-        "# ADC Simulation Report",
+        "# ADC Simulation Summary",
         "",
         f"Generated: {timestamp}",
         "",
@@ -246,6 +249,59 @@ def render_report_markdown(report: SimulationReport, report_path: Path) -> str:
         ]
     )
     return "\n".join(sections)
+
+
+def write_simulation_summary(
+    *,
+    output_dir: Path,
+    adc: AdcConfig,
+    noise: AdcNoiseConfig,
+    static_cfg: StaticTestConfig,
+    dynamic_cfg: DynamicTestConfig,
+    static_result: StaticLinearity,
+    dynamic_result: DynamicMetrics,
+    simulator: str,
+    log_paths: SimulationLogPaths,
+    veriloga_model: Path | None = None,
+    summary_path: Path | None = None,
+    generated_at: datetime | None = None,
+) -> Path:
+    """Build and write SUMMARY.md for a completed static + dynamic run.
+
+    Args:
+        output_dir: Directory containing waveforms, figures, and logs.
+        adc: ADC core configuration.
+        noise: Noise and nonlinearity configuration.
+        static_cfg: Static testbench settings.
+        dynamic_cfg: Dynamic testbench settings.
+        static_result: Computed static INL/DNL metrics.
+        dynamic_result: Computed dynamic FFT metrics.
+        simulator: Engine identifier (``python``, ``ngspice``, or ``spectre``).
+        log_paths: Prepared log directory layout for the output folder.
+        veriloga_model: Optional archived Verilog-A model path.
+        summary_path: Destination markdown path (default: ``output_dir/SUMMARY.md``).
+        generated_at: Report timestamp (default: current UTC time).
+
+    Returns:
+        Absolute path to the written summary file.
+    """
+    destination = summary_path or (output_dir / SUMMARY_FILENAME)
+    report = SimulationReport(
+        adc=adc,
+        noise=noise,
+        static_cfg=static_cfg,
+        dynamic_cfg=dynamic_cfg,
+        static_result=static_result,
+        dynamic_result=dynamic_result,
+        static_plot=output_dir / "inl_dnl.svg",
+        dynamic_plot=output_dir / "spectrum.svg",
+        static_csv=output_dir / "static_waveform.csv",
+        dynamic_csv=output_dir / "dynamic_waveform.csv",
+        generated_at=generated_at or datetime.now(tz=UTC),
+        log_files=collect_log_files(log_paths, simulator=simulator),
+        veriloga_model=veriloga_model,
+    )
+    return write_report(report, destination)
 
 
 def write_report(report: SimulationReport, report_path: Path) -> Path:

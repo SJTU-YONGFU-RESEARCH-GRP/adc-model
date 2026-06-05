@@ -40,7 +40,11 @@ module configurable_adc(vin, clk, v_code, vdd, vss);
     parameter real TF = 1p;
 
     integer MAX_LUT = 4096;
+    integer MAX_EDGE_DRAWS = 65536;
+    integer edge_noise_count;
     real dnl_offset[0:4095];
+    real jitter_normal[0:65535];
+    real thermal_normal[0:65535];
     real vin_sample;
     real vin_prev;
     real dt_sample;
@@ -60,6 +64,8 @@ module configurable_adc(vin, clk, v_code, vdd, vss);
     integer i;
     integer ki;
     integer rand_seed;
+    integer draw_index;
+    integer sample_count;
     integer first_sample;
     real sum_u;
 
@@ -71,21 +77,39 @@ module configurable_adc(vin, clk, v_code, vdd, vss);
             vcm = 0.5 * (VREFP + VREFN);
             vfs = fs_range;
             first_sample = 1;
+            sample_count = 0;
             vin_prev = vcm;
             t_prev = 0.0;
 
             for (i = 0; i < MAX_LUT; i = i + 1)
                 dnl_offset[i] = 0.0;
 
-            for (i = 0; i <= max_code && i < MAX_LUT - 1; i = i + 1) begin
-                sum_u = 0.0;
-                for (ki = 0; ki < 12; ki = ki + 1) begin
-                    rand_seed = NOISE_SEED + i + ki;
-                    sum_u = sum_u
-                            + (($random(rand_seed) & 65535) / 65535.0);
-                end
-                dnl_offset[i] = DNL_SIGMA_LSB * (sum_u - 6.0);
+            // Spectre driver may define CONFIGURABLE_ADC_USE_PYTHON_DNL and supply
+            // dnl_profile.inc generated from Python build_dnl_profile().
+`ifdef CONFIGURABLE_ADC_USE_PYTHON_DNL
+            if (DNL_SIGMA_LSB > 0.0) begin
+`include "dnl_profile.inc"
             end
+`else
+            if (DNL_SIGMA_LSB > 0.0) begin
+                for (i = 0; i <= max_code && i < MAX_LUT - 1; i = i + 1) begin
+                    sum_u = 0.0;
+                    for (ki = 0; ki < 12; ki = ki + 1) begin
+                        rand_seed = NOISE_SEED + 17 + i + ki;
+                        sum_u = sum_u
+                                + (($random(rand_seed) & 65535) / 65535.0);
+                    end
+                    dnl_offset[i] = DNL_SIGMA_LSB * (sum_u - 6.0);
+                end
+            end
+`endif
+
+            // Spectre driver may define CONFIGURABLE_ADC_USE_PYTHON_NOISE and supply
+            // edge_noise.inc (NumPy normal draws per clock edge).
+`ifdef CONFIGURABLE_ADC_USE_PYTHON_NOISE
+            edge_noise_count = 0;
+`include "edge_noise.inc"
+`endif
         end
 
         @(cross(V(clk) - (V(vdd) + V(vss)) / 2.0, +1)) begin
@@ -102,17 +126,30 @@ module configurable_adc(vin, clk, v_code, vdd, vss);
             t_prev = $abstime;
 
             // Aperture jitter: delta_v ~= jitter * dV/dt.
+`ifdef CONFIGURABLE_ADC_USE_PYTHON_NOISE
+            if (JITTER_RMS > 0.0 && sample_count < edge_noise_count) begin
+                v_jitter = JITTER_RMS * (vin_sample - vin_prev) / dt_sample
+                           * jitter_normal[sample_count];
+            end else
+                v_jitter = 0.0;
+`else
+            // Per-edge RNG: sample_count advances each conversion so jitter/thermal
+            // are not repeated every clock (matches Python edge-sampled noise order).
+            draw_index = sample_count;
+
             if (JITTER_RMS > 0.0) begin
                 sum_u = 0.0;
                 for (ki = 0; ki < 12; ki = ki + 1) begin
-                    rand_seed = NOISE_SEED + ki;
+                    rand_seed = NOISE_SEED + draw_index * 13 + ki;
                     sum_u = sum_u
                             + (($random(rand_seed) & 65535) / 65535.0);
                 end
                 v_jitter = JITTER_RMS * (vin_sample - vin_prev) / dt_sample
                            * (sum_u - 6.0);
+                draw_index = draw_index + 1;
             end else
                 v_jitter = 0.0;
+`endif
 
             vin_prev = vin_sample;
             v_eff = GAIN * (vin_sample + v_jitter) + OFFSET_V;
@@ -124,16 +161,24 @@ module configurable_adc(vin, clk, v_code, vdd, vss);
             end
 
             if (SIGMA_THERMAL > 0.0) begin
+`ifdef CONFIGURABLE_ADC_USE_PYTHON_NOISE
+                if (sample_count < edge_noise_count)
+                    n_thermal = SIGMA_THERMAL * thermal_normal[sample_count];
+                else
+                    n_thermal = 0.0;
+`else
                 sum_u = 0.0;
                 for (ki = 0; ki < 12; ki = ki + 1) begin
-                    rand_seed = NOISE_SEED + 1000 + ki;
+                    rand_seed = NOISE_SEED + draw_index * 13 + ki;
                     sum_u = sum_u
                             + (($random(rand_seed) & 65535) / 65535.0);
                 end
                 n_thermal = SIGMA_THERMAL * (sum_u - 6.0);
+`endif
             end else
                 n_thermal = 0.0;
             v_eff = v_eff + n_thermal;
+            sample_count = sample_count + 1;
 
             if (DNL_SIGMA_LSB > 0.0) begin
                 code_idx = $rtoi(floor((v_eff - VREFN) / lsb));

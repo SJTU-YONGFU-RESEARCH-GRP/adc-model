@@ -26,13 +26,70 @@ _MIN_SAMPLES_PER_CODE_WITH_NOISE = 16
 # Spectre nutascii may split ``v_code`` onto a second line when the index row is short.
 
 
-def _absolutize_spectre_includes(text: str, repo_root: Path) -> str:
+def _absolutize_spectre_includes(
+    text: str,
+    repo_root: Path,
+    *,
+    va_path: Path | None = None,
+) -> str:
     """Replace repo-relative ``include`` with an absolute ``ahdl_include`` path.
 
     Rendered netlists run from ``<output>/logs/``; relative paths would break VA load.
     """
-    va_path = (repo_root / "veriloga/configurable_adc.va").resolve()
-    return _ADC_INCLUDE.sub(f'ahdl_include "{va_path}"\n', text)
+    resolved_va = (va_path or (repo_root / "veriloga/configurable_adc.va")).resolve()
+    return _ADC_INCLUDE.sub(f'ahdl_include "{resolved_va}"\n', text)
+
+
+def spectre_capture_num_edges(
+    cfg: AdcConfig,
+    noise: AdcNoiseConfig,
+    *,
+    netlist_stem: str,
+    samples_per_code: int | None,
+    num_samples: int | None,
+) -> int:
+    """Return the number of ADC clock edges for a Spectre testbench capture."""
+    if netlist_stem == "static_inl_dnl":
+        spc = samples_per_code if samples_per_code is not None else 16
+        return cfg.num_codes * _effective_samples_per_code(spc, noise)
+    if num_samples is not None:
+        return num_samples
+    return 8192
+
+
+def prepare_spectre_veriloga(
+    repo_root: Path,
+    run_dir: Path,
+    cfg: AdcConfig,
+    noise: AdcNoiseConfig,
+    *,
+    num_edges: int,
+) -> Path:
+    """Render a Spectre-local copy of ``configurable_adc.va`` with Python-matched tables.
+
+    When ``dnl_sigma_lsb > 0``, writes ``dnl_profile.inc`` from
+    :func:`adc_model.noise.write_dnl_profile_include`.
+    When jitter or thermal noise is enabled, writes ``edge_noise.inc`` from
+    :func:`adc_model.noise.write_edge_noise_include`.
+    """
+    from adc_model.noise import write_dnl_profile_include, write_edge_noise_include
+
+    netlists_dir = run_dir / "netlists"
+    netlists_dir.mkdir(parents=True, exist_ok=True)
+    va_src = repo_root / "veriloga/configurable_adc.va"
+    va_dst = netlists_dir / "configurable_adc.va"
+    defines: list[str] = []
+    if noise.dnl_sigma_lsb > 0.0:
+        write_dnl_profile_include(cfg, noise, netlists_dir / "dnl_profile.inc")
+        defines.append("CONFIGURABLE_ADC_USE_PYTHON_DNL")
+    if noise.jitter_rms_s > 0.0 or noise.sigma_thermal_v > 0.0:
+        write_edge_noise_include(noise, num_edges, netlists_dir / "edge_noise.inc")
+        defines.append("CONFIGURABLE_ADC_USE_PYTHON_NOISE")
+    prefix = "".join(f"`define {name}\n" for name in defines)
+    if prefix:
+        prefix += "\n"
+    va_dst.write_text(prefix + va_src.read_text(encoding="utf-8"), encoding="utf-8")
+    return va_dst.resolve()
 
 
 def _spectre_artifact_paths(directory: Path, netlist_stem: str) -> list[Path]:
@@ -193,6 +250,7 @@ def render_spectre_netlist(
     samples_per_code: int | None = None,
     num_samples: int | None = None,
     coherent_bin: int | None = None,
+    va_path: Path | None = None,
 ) -> str:
     """Render a Spectre testbench with CLI ADC/noise settings.
 
@@ -205,6 +263,7 @@ def render_spectre_netlist(
         coherent_bin: Coherent FFT bin override.
         repo_root: When set, rewrite the Verilog-A include to an absolute path so
             Spectre can run outside the repository root.
+        va_path: Optional rendered ``configurable_adc.va`` path (Spectre run dir).
 
     Returns:
         Rendered netlist text.
@@ -249,7 +308,7 @@ def render_spectre_netlist(
 
     text = _PARAMETER_LINE.sub(_replace, text)
     if repo_root is not None:
-        text = _absolutize_spectre_includes(text, repo_root)
+        text = _absolutize_spectre_includes(text, repo_root, va_path=va_path)
     return text
 
 
@@ -321,9 +380,23 @@ def run_spectre_testbench(
     cleanup_spectre_artifacts(repo_root.resolve(), netlist_stem)
 
     run_scs_path = scs_path
+    spectre_va_path: Path | None = None
     if cfg is not None and noise is not None:
         rendered_dir = run_dir / "netlists"
         rendered_dir.mkdir(parents=True, exist_ok=True)
+        spectre_va_path = prepare_spectre_veriloga(
+            repo_root,
+            run_dir,
+            cfg,
+            noise,
+            num_edges=spectre_capture_num_edges(
+                cfg,
+                noise,
+                netlist_stem=netlist_stem,
+                samples_per_code=samples_per_code,
+                num_samples=num_samples,
+            ),
+        )
         run_scs_path = rendered_dir / scs_path.name
         run_scs_path.write_text(
             render_spectre_netlist(
@@ -334,6 +407,7 @@ def run_spectre_testbench(
                 samples_per_code=samples_per_code,
                 num_samples=num_samples,
                 coherent_bin=coherent_bin,
+                va_path=spectre_va_path,
             ),
             encoding="utf-8",
         )

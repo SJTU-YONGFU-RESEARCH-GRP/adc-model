@@ -1,5 +1,5 @@
 # Spectre simulation log: static_inl_dnl.scs
-Generated: 2026-06-04 09:59:01 UTC
+Generated: 2026-06-05 18:03:00 UTC
 Spectre run directory: /home/yongfu/proj/adc-model/outputs/spectre/logs
 Command: spectre /home/yongfu/proj/adc-model/outputs/spectre/logs/netlists/static_inl_dnl.scs -format nutascii -raw /home/yongfu/proj/adc-model/outputs/spectre/logs/static_inl_dnl.nutascii
 Raw output: /home/yongfu/proj/adc-model/outputs/spectre/logs/static_inl_dnl.nutascii
@@ -14,26 +14,27 @@ Copyright (C) 1989-2024 Cadence Design Systems, Inc. All rights reserved
 Includes RSA BSAFE(R) Cryptographic or Security Protocol Software from RSA
         Security, Inc.
 
-User: yongfu   Host: river   HostID: 7F0100   PID: 146498
-Memory  available: 347.4542 GB  physical: 405.0724 GB
+User: yongfu   Host: river   HostID: 7F0100   PID: 3166914
+Memory  available: 358.1475 GB  physical: 405.0724 GB
 Linux   : Red Hat Enterprise Linux release 9.7 (Plow)
 CPU Type: Intel(R) Xeon(R) CPU E5-2678 v3 @ 2.50GHz
-All processors running at 2899.7 MHz
-        Socket: Processors (Hyperthreaded Processor)
-        0:       0 ( 24 ),  1 ( 25 ),  2 ( 26 ),  3 ( 27 ),  4 ( 28 )
-                 5 ( 29 ),  6 ( 30 ),  7 ( 31 ),  8 ( 32 ),  9 ( 33 )
-                10 ( 34 ), 11 ( 35 )
-        1:      12 ( 36 ), 13 ( 37 ), 14 ( 38 ), 15 ( 39 ), 16 ( 40 )
-                17 ( 41 ), 18 ( 42 ), 19 ( 43 ), 20 ( 44 ), 21 ( 45 )
-                22 ( 46 ), 23 ( 47 )
+        Socket: Processors [Frequency] (Hyperthreaded Processor)
+        0:       0 [3001.8] ( 24 ),  1 [3300.0] ( 25 ),  2 [3300.0] ( 26 )
+                 3 [3025.9] ( 27 ),  4 [3300.0] ( 28 ),  5 [3300.0] ( 29 )
+                 6 [3300.0] ( 30 ),  7 [3300.0] ( 31 ),  8 [3300.0] ( 32 )
+                 9 [2899.1] ( 33 ), 10 [3300.0] ( 34 ), 11 [3300.0] ( 35 )
+        1:      12 [3022.4] ( 36 ), 13 [3300.0] ( 37 ), 14 [3300.0] ( 38 )
+                15 [2937.4] ( 39 ), 16 [3300.0] ( 40 ), 17 [2900.7] ( 41 )
+                18 [3299.7] ( 42 ), 19 [3300.0] ( 43 ), 20 [2899.7] ( 44 )
+                21 [3091.4] ( 45 ), 22 [3273.1] ( 46 ), 23 [2899.5] ( 47 )
         
-System load averages (1min, 5min, 15min) : 87.8 %, 45.4 %, 52.5 %
+System load averages (1min, 5min, 15min) : 10.3 %, 8.9 %, 7.4 %
 Hyperthreading is enabled
 
 
 Simulating
         `/home/yongfu/proj/adc-model/outputs/spectre/logs/netlists/static_inl_dnl.scs'
-        on river at 5:59:02 PM, Thur Jun 4, 2026 (process id: 146498).
+        on river at 2:03:00 AM, Sat Jun 6, 2026 (process id: 3166914).
 Current working directory: /home/yongfu/proj/adc-model/outputs/spectre/logs
 Command line:
     /eda/cadence/SPECTRE241/tools/bin/spectre -64  \
@@ -43,35 +44,48 @@ Command line:
        
         /home/yongfu/proj/adc-model/outputs/spectre/logs/static_inl_dnl.nutascii
 Licensing Information:
-[17:59:02.080321] Configured Lic search path (24.01-s002):
+[02:03:00.080169] Configured Lic search path (24.01-s002):
         /eda/cadence/license.dat
 
 Licensing Information:
-[17:59:03.262968] Periodic Lic check successful
+[02:03:01.163169] Periodic Lic check successful
 
 Reading file: 
         /home/yongfu/proj/adc-model/outputs/spectre/logs/netlists/static_inl_dnl.scs
 Reading file: 
         /eda/cadence/SPECTRE241/tools.lnx86/spectre/etc/configs/spectre.cfg
-Reading file:  /home/yongfu/proj/adc-model/veriloga/configurable_adc.va
+Reading file: 
+        /home/yongfu/proj/adc-model/outputs/spectre/logs/netlists/configurable_adc.va
 Reading file: 
         /eda/cadence/SPECTRE241/tools.lnx86/spectre/etc/ahdl/constants.vams
 Reading file: 
         /eda/cadence/SPECTRE241/tools.lnx86/spectre/etc/ahdl/disciplines.vams
-Time for NDB Parsing: CPU = 274.831 ms, elapsed = 760.272 ms.
-Time accumulated: CPU = 443.829 ms, elapsed = 760.274 ms.
-Peak resident memory used = 193 Mbytes.
+Reading file: 
+        /home/yongfu/proj/adc-model/outputs/spectre/logs/netlists/dnl_profile.inc
+Reading file: 
+        /home/yongfu/proj/adc-model/outputs/spectre/logs/netlists/edge_noise.inc
+
+Notice from spectre during AHDL read-in.
+    "/home/yongfu/proj/adc-model/outputs/spectre/logs/netlists/configurable_adc.va",
+        line 19:  Module configurable_adc is a compact model. As a result, it
+        has been optimized automatically for better performance. For more
+        information on compact models, refer to the Cadence Verilog-A Language
+        Reference manual.
+
+Time for NDB Parsing: CPU = 1.35008 s, elapsed = 969.35 ms.
+Time accumulated: CPU = 1.44205 s, elapsed = 969.352 ms.
+Peak resident memory used = 292 Mbytes.
 
 Existing shared object for module configurable_adc is up to date.
 Installed compiled interface for configurable_adc.
-Time for Elaboration: CPU = 44.372 ms, elapsed = 23.2608 ms.
-Time accumulated: CPU = 488.34 ms, elapsed = 783.673 ms.
-Peak resident memory used = 201 Mbytes.
+Time for Elaboration: CPU = 31.323 ms, elapsed = 15.435 ms.
+Time accumulated: CPU = 1.47351 s, elapsed = 984.916 ms.
+Peak resident memory used = 297 Mbytes.
 
 
-Time for EDB Visiting: CPU = 1.657 ms, elapsed = 663.996 us.
-Time accumulated: CPU = 490.146 ms, elapsed = 784.484 ms.
-Peak resident memory used = 203 Mbytes.
+Time for EDB Visiting: CPU = 1.939 ms, elapsed = 947.952 us.
+Time accumulated: CPU = 1.47555 s, elapsed = 985.963 ms.
+Peak resident memory used = 298 Mbytes.
 
 
 Notice from spectre during topology check.
@@ -99,9 +113,9 @@ Output statements:
            .measure 0     
                save 1     
 
-Time for parsing: CPU = 11.677 ms, elapsed = 6.19292 ms.
-Time accumulated: CPU = 501.932 ms, elapsed = 790.786 ms.
-Peak resident memory used = 206 Mbytes.
+Time for parsing: CPU = 6.286 ms, elapsed = 3.30591 ms.
+Time accumulated: CPU = 1.48193 s, elapsed = 989.36 ms.
+Peak resident memory used = 301 Mbytes.
 
 ~~~~~~~~~~~~~~~~~~~~~~
 Pre-Simulation Summary
@@ -111,7 +125,7 @@ Pre-Simulation Summary
 ****************************************************
 Transient Analysis `tran': time = (0 s -> 16.384 ms)
 ****************************************************
-DC simulation time: CPU = 1.96 ms, elapsed = 969.887 us.
+DC simulation time: CPU = 2.106 ms, elapsed = 1.127 ms.
 Important parameter values:
     start = 0 s
     outputstart = 0 s
@@ -139,7 +153,7 @@ Output and IC/nodeset summary:
                  save   3       (voltage)
 
 ......9......8......7......6......5......4......3......2......1......0
-Number of accepted tran steps =             464860
+Number of accepted tran steps =             487384
 
 Maximum value achieved for any signal of each quantity: 
 V: V(vdd) = 1 V
@@ -160,37 +174,38 @@ Post-Transient Simulation Summary
 
 
 During simulation, the CPU load for active processors is :
-         0 (99.5 %)      1 (99.7 %)      2 (99.4 %)      3 (99.3 %)
-         4 (99.4 %)      5 (99.7 %)      6 (99.4 %)      7 (99.3 %)
-         8 (99.1 %)      9 (99.4 %)     10 (99.3 %)     11 (99.2 %)
-        12 (100.0 %)    13 (99.8 %)     14 (99.9 %)     15 (99.9 %)
-        16 (99.9 %)     17 (100.0 %)    18 (99.6 %)     19 (100.0 %)
-        20 (100.0 %)    21 (99.9 %)     22 (99.9 %)     23 (100.0 %)
-        24 (99.1 %)     25 (99.4 %)     26 (99.3 %)     27 (99.3 %)
-        28 (99.0 %)     29 (99.3 %)     30 (99.2 %)     31 (99.4 %)
-        32 (99.3 %)     33 (99.4 %)     34 (99.2 %)     35 (99.1 %)
-        36 (99.9 %)     37 (99.9 %)     38 (100.0 %)    39 (100.0 %)
-        40 (100.0 %)    41 (100.0 %)    42 (99.7 %)     43 (100.0 %)
-        44 (100.0 %)    45 (100.0 %)    46 (100.0 %)    47 (100.0 %)
-        Total: 4782.3%
-Initial condition solution time: CPU = 2.027 ms, elapsed = 1.03712 ms.
-Intrinsic tran analysis time:    CPU = 38.9414 s, elapsed = 33.081 s.
-Total time required for tran analysis `tran': CPU = 38.944 s, elapsed = 33.0826
-        s, util. = 118%.
-Time accumulated: CPU = 39.4656 s, elapsed = 33.8924 s.
-Peak resident memory used = 214 Mbytes.
+         0 (8.6 %)       1 (8.1 %)       2 (2.6 %)       3 (1.6 %)
+         4 (27.0 %)      5 (4.3 %)       6 (3.9 %)       7 (1.7 %)
+         8 (2.2 %)       9 (63.1 %)     10 (32.7 %)     11 (1.0 %)
+        12 (16.5 %)     13 (6.1 %)      14 (5.6 %)      15 (12.7 %)
+        16 (2.8 %)      17 (6.2 %)      18 (13.2 %)     19 (4.6 %)
+        20 (5.9 %)      21 (3.9 %)      22 (3.4 %)      23 (10.1 %)
+        24 (1.6 %)      25 (3.8 %)      26 (3.7 %)      27 (2.0 %)
+        28 (17.9 %)     29 (5.4 %)      30 (1.8 %)      31 (3.9 %)
+        32 (4.3 %)      33 (2.1 %)      34 (43.1 %)     35 (7.5 %)
+        36 (7.8 %)      37 (4.1 %)      38 (2.6 %)      39 (13.2 %)
+        40 (8.2 %)      41 (17.8 %)     42 (5.3 %)      43 (4.9 %)
+        44 (12.1 %)     45 (2.8 %)      46 (17.6 %)     47 (3.9 %)
+        Total: 445.1%
+Initial condition solution time: CPU = 2.148 ms, elapsed = 1.17111 ms.
+Intrinsic tran analysis time:    CPU = 139.183 s, elapsed = 135.855 s.
+Total time required for tran analysis `tran': CPU = 139.186 s (2m  19.2s),
+        elapsed = 135.856 s (2m  15.9s), util. = 102%.
+Time accumulated: CPU = 140.694 s (2m  20.7s), elapsed = 136.865 s (2m 
+        16.9s).
+Peak resident memory used = 301 Mbytes.
 
 Licensing Information:
 Lic Summary:
-[17:59:36.001320] cdslmd servers: /eda/cadence/license.dat
-[17:59:36.016632] Feature usage summary:
-[17:59:36.249495]   Virtuoso_Spectre  
+[02:05:17.001192] cdslmd servers: /eda/cadence/license.dat
+[02:05:17.016504] Feature usage summary:
+[02:05:17.249367]   Virtuoso_Spectre  
 
 
-Aggregate audit (5:59:36 PM, Thur Jun 4, 2026):
-Time used: CPU = 39.5 s, elapsed = 39.5 s, util. = 100%.
-Time spent in licensing: elapsed = 439 ms.
-Peak memory used = 215 Mbytes.
-Simulation started at: 5:59:02 PM, Thur Jun 4, 2026, ended at: 5:59:36 PM, Thur
-        Jun 4, 2026, with elapsed time (wall clock): 39.5 s.
-spectre completes with 0 errors, 0 warnings, and 2 notices.
+Aggregate audit (2:05:17 AM, Sat Jun 6, 2026):
+Time used: CPU = 141 s (2m  20.7s), elapsed = 141 s (2m  20.7s), util. = 100%.
+Time spent in licensing: elapsed = 256 ms.
+Peak memory used = 300 Mbytes.
+Simulation started at: 2:03:00 AM, Sat Jun 6, 2026, ended at: 2:05:17 AM, Sat
+        Jun 6, 2026, with elapsed time (wall clock): 141 s (2m  20.7s).
+spectre completes with 0 errors, 0 warnings, and 3 notices.

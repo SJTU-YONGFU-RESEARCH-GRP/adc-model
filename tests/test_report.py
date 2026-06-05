@@ -79,11 +79,11 @@ def test_report_contains_configuration_and_metrics(tmp_path: Path) -> None:
         generated_at=datetime(2026, 6, 3, 12, 0, tzinfo=UTC),
     )
 
-    report_path = output_dir / "REPORT.md"
+    report_path = output_dir / "SUMMARY.md"
     write_report(report, report_path)
     markdown = report_path.read_text(encoding="utf-8")
 
-    assert "ADC Simulation Report" in markdown
+    assert "ADC Simulation Summary" in markdown
     assert "250 uV" in markdown
     assert "Max DNL (abs)" in markdown
     assert "58.50 dB" in markdown

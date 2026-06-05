@@ -11,7 +11,7 @@
 
 simulator lang=spectre
 
-ahdl_include "/home/yongfu/proj/adc-model/veriloga/configurable_adc.va"
+ahdl_include "/home/yongfu/proj/adc-model/outputs/spectre/logs/netlists/configurable_adc.va"
 parameters bits=10
 parameters vrefp=1
 parameters vrefn=0.0
