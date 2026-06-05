@@ -1,6 +1,6 @@
 # ADC Simulation Summary
 
-Generated: 2026-06-05 18:02:59 UTC
+Generated: 2026-06-05 18:18:48 UTC
 
 Behavioral simulation of `configurable_adc` with static INL/DNL and dynamic FFT analysis.
 
@@ -72,12 +72,12 @@ Behavioral simulation of `configurable_adc` with static INL/DNL and dynamic FFT 
 
 | Tone | Frequency | Magnitude |
 | --- | --- | --- |
-| Fin | 121.704 kHz | 77.91 dBFS |
-| H2 | 243.408 kHz | -14.81 dBFS |
-| H3 | 365.112 kHz | -2.68 dBFS |
-| H4 | 487.061 kHz | -16.21 dBFS |
-| H5* | 391.724 kHz | -19.06 dBFS |
-| H6* | 270.02 kHz | -14.53 dBFS |
+| Fin | 121.704 kHz | -0.36 dBFS |
+| H2 | 243.408 kHz | -93.07 dBFS |
+| H3 | 365.112 kHz | -80.95 dBFS |
+| H4 | 487.061 kHz | -94.48 dBFS |
+| H5* | 391.724 kHz | -97.33 dBFS |
+| H6* | 270.02 kHz | -92.79 dBFS |
 
 Aliased harmonics are marked with `*`.
 

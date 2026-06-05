@@ -1,6 +1,6 @@
 # ADC Batch Simulation Summary
 
-Generated: 2026-06-05 18:06:41 UTC
+Generated: 2026-06-05 18:22:31 UTC
 Output root: `/home/yongfu/proj/adc-model/outputs`
 Reference engine: `python`
 Relative tolerance: 2.0%
