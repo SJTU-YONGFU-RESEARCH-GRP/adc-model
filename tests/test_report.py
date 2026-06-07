@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -76,7 +76,7 @@ def test_report_contains_configuration_and_metrics(tmp_path: Path) -> None:
         dynamic_plot=dynamic_plot,
         static_csv=static_csv,
         dynamic_csv=dynamic_csv,
-        generated_at=datetime(2026, 6, 3, 12, 0, tzinfo=UTC),
+        generated_at=datetime(2026, 6, 3, 12, 0, tzinfo=timezone.utc),
     )
 
     report_path = output_dir / "SUMMARY.md"

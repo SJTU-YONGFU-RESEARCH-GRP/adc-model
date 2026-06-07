@@ -1,6 +1,6 @@
 # ADC Simulation Summary
 
-Generated: 2026-06-05 18:18:15 UTC
+Generated: 2026-06-07 15:15:10 UTC
 
 Behavioral simulation of `configurable_adc` with static INL/DNL and dynamic FFT analysis.
 

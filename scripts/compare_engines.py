@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import argparse
 import sys
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 from adc_model.batch_metrics import collect_metrics_by_engine, condition_label
@@ -183,7 +183,7 @@ def main() -> int:
         rtol=args.rtol,
     )
 
-    generated_at = datetime.now(tz=UTC)
+    generated_at = datetime.now(tz=timezone.utc)
     summary_text = build_batch_summary_markdown(
         output_root=args.output_root,
         metrics_by_label=metrics_by_label,

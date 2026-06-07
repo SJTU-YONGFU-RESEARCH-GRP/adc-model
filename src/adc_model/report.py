@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 from adc_model.config import AdcConfig, AdcNoiseConfig
@@ -116,7 +116,7 @@ def render_report_markdown(report: SimulationReport, report_path: Path) -> str:
     noise = report.noise
     static = report.static_result
     dynamic = report.dynamic_result
-    timestamp = report.generated_at.astimezone(UTC).strftime("%Y-%m-%d %H:%M:%S UTC")
+    timestamp = report.generated_at.astimezone(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
 
     inl_plot = _rel_link(report_path, report.static_plot)
     spectrum_plot = _rel_link(report_path, report.dynamic_plot)
@@ -297,7 +297,7 @@ def write_simulation_summary(
         dynamic_plot=output_dir / "spectrum.svg",
         static_csv=output_dir / "static_waveform.csv",
         dynamic_csv=output_dir / "dynamic_waveform.csv",
-        generated_at=generated_at or datetime.now(tz=UTC),
+        generated_at=generated_at or datetime.now(tz=timezone.utc),
         log_files=collect_log_files(log_paths, simulator=simulator),
         veriloga_model=veriloga_model,
     )

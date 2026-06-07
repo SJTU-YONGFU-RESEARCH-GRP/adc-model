@@ -5,7 +5,7 @@ from __future__ import annotations
 import shutil
 import sys
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -86,7 +86,7 @@ def write_python_simulation_log(
 ) -> Path:
     """Write a human-readable Python simulation log."""
     log_path.parent.mkdir(parents=True, exist_ok=True)
-    timestamp = datetime.now(tz=UTC).strftime("%Y-%m-%d %H:%M:%S UTC")
+    timestamp = datetime.now(tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
     lines = [
         f"# Python simulation log: {test_name}",
         f"Generated: {timestamp}",

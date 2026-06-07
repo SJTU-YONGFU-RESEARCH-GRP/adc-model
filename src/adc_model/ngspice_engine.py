@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import subprocess
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 import numpy as np
@@ -406,7 +406,7 @@ def run_ngspice_netlist(
     cmd = ["ngspice", "-b", str(netlist_path.resolve())]
     header = [
         f"# ngspice simulation log: {netlist_path.name}",
-        f"Generated: {datetime.now(tz=UTC).strftime('%Y-%m-%d %H:%M:%S UTC')}",
+        f"Generated: {datetime.now(tz=timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}",
         f"Engine: ngspice behavioral netlist (reference: configurable_adc.va)",
         f"Netlist: {netlist_path.resolve()}",
         f"Includes: {include_dir.resolve()}",

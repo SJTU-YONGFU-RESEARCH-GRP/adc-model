@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 import shutil
 import subprocess
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 import numpy as np
@@ -422,7 +422,7 @@ def run_spectre_testbench(
     ]
     header = [
         f"# Spectre simulation log: {scs_path.name}",
-        f"Generated: {datetime.now(tz=UTC).strftime('%Y-%m-%d %H:%M:%S UTC')}",
+        f"Generated: {datetime.now(tz=timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}",
         f"Spectre run directory: {run_dir}",
         f"Command: {' '.join(cmd)}",
         f"Raw output: {raw_path.resolve()}",

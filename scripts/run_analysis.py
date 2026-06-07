@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import argparse
 import sys
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 from adc_model.cli_helpers import (
@@ -226,7 +226,7 @@ def main() -> int:
         log_paths=log_paths,
         veriloga_model=veriloga_model,
         summary_path=report_path,
-        generated_at=datetime.now(tz=UTC),
+        generated_at=datetime.now(tz=timezone.utc),
     )
 
     print(f"Summary      : {written_report}")
